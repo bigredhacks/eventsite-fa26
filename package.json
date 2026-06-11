@@ -12,7 +12,5 @@
     "build": "npm run build:frontend",
     "lint": "npm run lint -w frontend"
   },
-  "dependencies": {
-    "i": "^0.0.1-security"
-  }
+  "dependencies": {}
 }
