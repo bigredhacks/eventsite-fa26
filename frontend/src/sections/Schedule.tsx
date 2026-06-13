@@ -35,7 +35,7 @@ const HOURS = [
 
 const DAYS: Day[] = [
   {
-    date: "10/3",
+    date: "10/2",
     blocks: [
       { label: "Check-In",         time: "16:30",       startHour: 7.5,  durationHours: 1.5, shade: "light" },
       { label: "Opening Ceremony", time: "18:00",       startHour: 9,    durationHours: 0.5, shade: "medium" },
@@ -45,7 +45,7 @@ const DAYS: Day[] = [
     ],
   },
   {
-    date: "10/4",
+    date: "10/3",
     blocks: [
       { label: "Breakfast",   time: "9:00",        startHour: 0,    durationHours: 0.5, shade: "medium", marker: true },
       // Workshops + Career Fair overlap; render them side-by-side.
@@ -55,7 +55,7 @@ const DAYS: Day[] = [
     ],
   },
   {
-    date: "10/5",
+    date: "10/4",
     blocks: [
       { label: "Projects Due",            time: "9:00",       startHour: 0,    durationHours: 0.5, shade: "dark",  marker: true },
       { label: "Judging",                 time: "9:15-13:00", startHour: 0.25, durationHours: 3.75, shade: "medium" },
@@ -75,12 +75,12 @@ const MIN_BLOCK_HEIGHT_PX = 64;
 // readers about when the next event actually starts.
 const MIN_MARKER_HEIGHT_PX = 36;
 
-// Map dayIndex (0=10/3, 1=10/4, 2=10/5) to absolute calendar dates for
+// Map dayIndex (0=10/2, 1=10/3, 2=10/4) to absolute calendar dates for
 // the .ics export. Year/month locked to the FA26 hackathon weekend.
 const EVENT_DATE_BY_INDEX: Record<number, [number, number, number]> = {
-  0: [2026, 10, 3],
-  1: [2026, 10, 4],
-  2: [2026, 10, 5],
+  0: [2026, 10, 2],
+  1: [2026, 10, 3],
+  2: [2026, 10, 4],
 };
 
 // Convert a `startHour` (offset in hours from 9 AM on the day) to a tuple

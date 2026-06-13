@@ -36,7 +36,7 @@ const Hero: React.FC = () => {
         <h1 className="text-[6.3vw] md:text-[6.3vw]">
           BIGRED//<br />HACKS 2026
         </h1>
-        <p className="text-[4.8vw] md:text-[4.8vw] mt-[1vw]">10.03 - 10.05</p>
+        <p className="text-[4.8vw] md:text-[4.8vw] mt-[1vw]">10.02 - 10.04</p>
       </div>
 
       {/* ABOUT text — Figma node 362:772 (103, 1115, 784, 413).

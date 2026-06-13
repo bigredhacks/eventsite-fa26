@@ -64,7 +64,7 @@ export const faqData: FAQItem[] = [
   {
     question: "Where and when is the hackathon?",
     answer:
-      "BigRed//Hacks 2026 will take place October 3rd - 5th on Cornell University's Ithaca Campus.",
+      "BigRed//Hacks 2026 will take place October 2nd - 4th on Cornell University's Ithaca Campus.",
   },
   {
     question: "When will the next hackathon be?",
@@ -84,7 +84,7 @@ export const faqData: FAQItem[] = [
 ];
 
 export const eventDates = {
-  start: "10.03",
-  end: "10.05",
+  start: "10.02",
+  end: "10.04",
   year: 2026,
 };
