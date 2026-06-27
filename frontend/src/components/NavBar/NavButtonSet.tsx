@@ -54,7 +54,7 @@ const NavButtonSet: React.FC<Props> = ({
       </NavButton>
       {/* APPLY pill — Figma 362:207: dark navy bg, white text, 50px radius */}
       <a
-        href="https://docs.google.com/forms/d/e/1FAIpQLSeHHQLRPzKNfYOEawkR_Gu-aepVv1RbNQGHV2qFF3X8zJFMJA/viewform?fbclid=PAZXh0bgNhZW0CMTEAc3J0YwZhcHBfaWQPMTI0MDI0NTc0Mjg3NDE0AAGnT00szV8RZT9-66JTmxU1H-ucH8bemfzroGIatMcuH4XoQOTt_5uChgB0N7A_aem_yZfatZ2ox1yvoWjTeQxx6w"
+        href="https://brh-registration-portal.netlify.app/"
         target="_blank"
         rel="noopener noreferrer"
         onClick={onLinkClick}
