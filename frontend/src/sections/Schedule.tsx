@@ -57,7 +57,7 @@ const DAYS: Day[] = [
   {
     date: "10/4",
     blocks: [
-      { label: "Projects Due",            time: "9:00",       startHour: 0,    durationHours: 0.5, shade: "dark",  marker: true },
+      { label: "Projects Due",            time: "8:30",       startHour: 0,    durationHours: 0.5, shade: "dark",  marker: true },
       { label: "Judging",                 time: "9:15-13:00", startHour: 0.25, durationHours: 3.75, shade: "medium" },
       { label: "Awards + Closing Ceremony", time: "13:00",    startHour: 4,    durationHours: 1,   shade: "light" },
     ],
