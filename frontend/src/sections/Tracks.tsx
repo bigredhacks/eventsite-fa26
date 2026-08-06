@@ -11,7 +11,7 @@ const Tracks: React.FC<SectionProps> = ({ className }) => {
         flex flex-col items-start
         bg-transparent
         overflow-y-visible overflow-x-clip
-        md:px-32 px-8
+        lg:px-32 md:px-12 sm:px-8 px-4
         md:pt-20 pt-12
         md:pb-[28vw] pb-72
          ${className ?? ""}`}
@@ -23,7 +23,7 @@ const Tracks: React.FC<SectionProps> = ({ className }) => {
       <div
         className="grid w-full
           md:grid-cols-3 grid-cols-2
-          md:gap-x-12 gap-x-3
+          lg:gap-x-12 md:gap-x-6 gap-x-3
           md:gap-y-10 gap-y-4
           z-10"
       >

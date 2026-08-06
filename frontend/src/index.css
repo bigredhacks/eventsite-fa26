@@ -98,6 +98,143 @@ button {
   cursor: pointer;
 }
 
+/* Persistent trail-marker navigation. At the top it remains visually open;
+   after the landscape begins moving it condenses into a high-contrast ridge
+   marker instead of disappearing or washing out over the clouds. */
+.nav-trail-shell {
+  width: 100%;
+  max-width: 1344px;
+  margin-inline: auto;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  box-shadow:
+    0 0 0 rgb(14 40 47 / 0),
+    inset 0 1px 0 rgb(255 255 255 / 0);
+  transition:
+    max-width 620ms cubic-bezier(0.22, 1, 0.36, 1),
+    padding 620ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 380ms ease,
+    box-shadow 480ms ease,
+    backdrop-filter 380ms ease;
+}
+
+.nav-trail-shell::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    linear-gradient(108deg, rgb(3 80 109 / 0.95), rgb(42 76 38 / 0.94));
+  opacity: 0;
+  transition: opacity 420ms ease;
+}
+
+.nav-trail-shell--scrolled {
+  max-width: 1040px;
+  border-color: rgb(255 255 255 / 0.22);
+  box-shadow:
+    0 14px 34px rgb(14 40 47 / 0.22),
+    inset 0 1px 0 rgb(255 255 255 / 0.12);
+  backdrop-filter: blur(16px) saturate(1.12);
+  -webkit-backdrop-filter: blur(16px) saturate(1.12);
+}
+
+.nav-trail-shell--scrolled::before {
+  opacity: 1;
+}
+
+/* Keep the mark as a stable visual anchor in both navbar states. The shell,
+   padding, border, and backdrop can now complete one continuous morph without
+   a second logo-size beat on the way back to the top. */
+.nav-brand {
+  height: 2.75rem;
+  flex: none;
+}
+
+@media (min-width: 768px) {
+  .nav-brand {
+    height: 3.5rem;
+  }
+}
+
+.nav-link {
+  position: relative;
+  text-shadow: 0 1px 8px rgb(21 49 59 / 0.35);
+}
+
+.nav-link:hover {
+  color: var(--color-yellow2);
+  transform: translateY(-1px);
+}
+
+.nav-link::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -0.62rem;
+  width: 6px;
+  height: 6px;
+  border-radius: 1px;
+  background: var(--color-yellow1);
+  box-shadow: 0 0 0 3px rgb(240 198 106 / 0.16);
+  opacity: 0;
+  transform: translateX(-50%) rotate(45deg) scale(0.45);
+  transition: opacity 220ms ease, transform 220ms ease;
+}
+
+.nav-link--active {
+  color: var(--color-yellow2);
+}
+
+.nav-link--active::after {
+  opacity: 1;
+  transform: translateX(-50%) rotate(45deg) scale(1);
+}
+
+.nav-apply {
+  border: 1px solid rgb(255 255 255 / 0.14);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.12);
+  transition:
+    color 220ms ease,
+    transform 220ms ease,
+    background-color 380ms ease,
+    box-shadow 380ms ease;
+}
+
+.nav-trail-shell--scrolled .nav-apply {
+  background: rgb(200 73 79 / 0.94);
+}
+
+.nav-menu-button {
+  background: rgb(3 80 109 / 0.88);
+  border: 1px solid rgb(255 255 255 / 0.18);
+  box-shadow: 0 5px 16px rgb(14 40 47 / 0.2);
+}
+
+.mobile-nav-panel {
+  background-image:
+    radial-gradient(circle at 18% 12%, rgb(129 183 227 / 0.22), transparent 28%),
+    linear-gradient(150deg, rgb(3 80 109 / 0.98), rgb(42 76 38 / 0.98));
+}
+
+.mobile-nav-panel .nav-link {
+  font-size: 1.5rem;
+}
+
+@media (max-width: 767px) {
+  .nav-trail-shell--menu-open.nav-trail-shell--scrolled {
+    border-color: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .nav-trail-shell--menu-open::before {
+    opacity: 0;
+  }
+}
+
 @keyframes infinite-scroll {
   from { transform: translateX(0); }
   to   { transform: translateX(-100%); }
@@ -123,14 +260,113 @@ button {
   animation: slide-in 0.25s ease-out forwards;
 }
 
-/* Train bobs slowly up and down — mirrors Figma annotation */
-@keyframes train-bob {
-  0%, 100% { transform: translateY(0); }
-  50%      { transform: translateY(-6px); }
+/* Train suspension uses percentages so its amplitude scales with the train,
+   not with the browser's CSS-pixel density. The uneven cadence reads as
+   wheel/rail movement instead of a weightless vertical float. */
+@keyframes hero-train-suspension {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+  24%      { transform: translate3d(0, -2.8%, 0) rotate(-0.12deg); }
+  52%      { transform: translate3d(0, 0.8%, 0) rotate(0.08deg); }
+  76%      { transform: translate3d(0, -1.5%, 0) rotate(-0.06deg); }
 }
 
-.animate-train-bob {
-  animation: train-bob 3.2s ease-in-out infinite;
+.hero-train-suspension {
+  animation: hero-train-suspension 0.92s ease-in-out infinite;
+  transform-origin: 50% 82%;
+  will-change: transform;
+}
+
+@keyframes bridge-train-suspension {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  30%      { transform: translate3d(0, -2%, 0); }
+  62%      { transform: translate3d(0, 1%, 0); }
+}
+
+.bridge-train-suspension {
+  animation: bridge-train-suspension 1.1s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* Track-card type is sized against each log, not the viewport. This keeps
+   long labels and descriptions inside the wood face at every grid width. */
+.track-card {
+  container-type: inline-size;
+  isolation: isolate;
+}
+
+.track-card__content {
+  padding: 19% 11% 8% 12%;
+  gap: clamp(2px, 2.4cqw, 10px);
+}
+
+.track-card__title {
+  max-width: 100%;
+  font-size: clamp(8px, 8cqw, 38px);
+  line-height: 0.92;
+  text-wrap: balance;
+}
+
+.track-card__description {
+  max-width: 100%;
+  font-size: clamp(6px, 4.2cqw, 18px);
+  line-height: 1.18;
+  text-wrap: balance;
+}
+
+.hero-about {
+  width: 46.946%;
+}
+
+@media (max-width: 640px) {
+  .hero-about {
+    width: 63%;
+  }
+}
+
+@media (max-width: 360px) {
+  .hero-title {
+    left: 40% !important;
+  }
+
+  .hero-title__heading {
+    font-size: 5.5vw;
+  }
+
+  .hero-title__date {
+    font-size: 4.1vw;
+  }
+
+  .hero-about {
+    width: 72%;
+  }
+}
+
+@container (max-width: 210px) {
+  .track-card__content {
+    padding-inline: 10%;
+    padding-top: 20%;
+    gap: 2cqw;
+  }
+
+  .track-card__title {
+    letter-spacing: -0.025em;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-navbar],
+  .nav-trail-shell,
+  .nav-trail-shell::before,
+  .nav-link,
+  .nav-link::after,
+  .nav-apply {
+    transition-duration: 1ms !important;
+  }
+
+  .hero-train-suspension,
+  .bridge-train-suspension {
+    animation: none;
+  }
 }
 
 /* Boats sway side-to-side — mirrors sponsor section annotation */

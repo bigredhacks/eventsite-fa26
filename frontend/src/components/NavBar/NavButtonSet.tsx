@@ -2,8 +2,8 @@ import React from "react";
 import NavButton from "./NavButton";
 
 type Props = {
-  setDisableHideUntil: React.Dispatch<React.SetStateAction<number>>;
   onLinkClick?: () => void;
+  activeTarget?: string | null;
 };
 
 // Per Figma frame 362:199: nav items are ABOUT / TRACKS / SCHEDULE / FAQ
@@ -11,43 +11,43 @@ type Props = {
 // All text is uppercase, Spartan Medium, 32px, tracking -2.24px on desktop.
 const NAV_LINK_CLASSES =
   "font-spartan font-medium uppercase text-white1 leading-none " +
-  "tracking-[-0.07em] hover:opacity-80 transition-opacity " +
+  "tracking-[-0.07em] transition-[opacity,transform,color] " +
   "text-2xl md:text-[clamp(20px,1.7vw,30px)]";
 
 const NavButtonSet: React.FC<Props> = ({
-  setDisableHideUntil,
   onLinkClick,
+  activeTarget,
 }) => {
   return (
     <>
       <NavButton
         targetId="about"
-        setDisableHideUntil={setDisableHideUntil}
         onClick={onLinkClick}
+        active={activeTarget === "about"}
         className={NAV_LINK_CLASSES}
       >
         About
       </NavButton>
       <NavButton
         targetId="tracks"
-        setDisableHideUntil={setDisableHideUntil}
         onClick={onLinkClick}
+        active={activeTarget === "tracks"}
         className={NAV_LINK_CLASSES}
       >
         Tracks
       </NavButton>
       <NavButton
         targetId="schedule"
-        setDisableHideUntil={setDisableHideUntil}
         onClick={onLinkClick}
+        active={activeTarget === "schedule"}
         className={NAV_LINK_CLASSES}
       >
         Schedule
       </NavButton>
       <NavButton
         targetId="faq"
-        setDisableHideUntil={setDisableHideUntil}
         onClick={onLinkClick}
+        active={activeTarget === "faq"}
         className={NAV_LINK_CLASSES}
       >
         FAQ
@@ -60,7 +60,7 @@ const NavButtonSet: React.FC<Props> = ({
         onClick={onLinkClick}
         className={
           NAV_LINK_CLASSES +
-          " bg-sky4 text-white1 rounded-full px-6 py-3 hover:opacity-90"
+          " nav-apply bg-sky4 text-white1 rounded-full px-6 py-3"
         }
       >
         Apply

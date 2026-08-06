@@ -5,24 +5,21 @@ type NavButtonProps = {
   targetId: string;
   children: React.ReactNode;
   className?: string;
-  setDisableHideUntil?: (time: number) => void;
   onClick?: () => void;
+  active?: boolean;
 };
 
 const NavButton: React.FC<NavButtonProps> = ({
   targetId,
   children,
   className,
-  setDisableHideUntil,
   onClick,
+  active,
 }) => {
   const handleClick = () => {
     const section = document.getElementById(targetId);
     const scrollSpeed = 500;
     if (section) {
-      if (setDisableHideUntil) {
-        setDisableHideUntil(Date.now() + scrollSpeed + 100);
-      }
       const targetY = section.getBoundingClientRect().top + window.scrollY;
       smoothScrollTo(targetY, scrollSpeed);
     }
@@ -32,9 +29,10 @@ const NavButton: React.FC<NavButtonProps> = ({
   return (
     <button
       onClick={handleClick}
-      className={`hover:underline ${className ?? ""}`}
+      className={`nav-link ${active ? "nav-link--active" : ""} ${className ?? ""}`}
+      aria-current={active ? "location" : undefined}
     >
-      {children}
+      <span className="relative z-[1]">{children}</span>
     </button>
   );
 };
