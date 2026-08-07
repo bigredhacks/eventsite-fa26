@@ -300,7 +300,7 @@ const MainStage: React.FC = () => {
   const wheelRotation = useTransform(
     smoothHeroProgress,
     [0, 0.48, 1],
-    [0, -3000, -3000],
+    [0, -2880, -2880],
   );
 
   return (
