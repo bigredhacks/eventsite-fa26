@@ -11,7 +11,13 @@
 // Reference: team Figma file, frame 362:2.
 
 import { useEffect, useRef, useState } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import {
+  motion,
+  useReducedMotion,
+  useScroll,
+  useSpring,
+  useTransform,
+} from "framer-motion";
 
 // SKY
 import backCloud from "@/assets/fa26_back_cloud.svg";
@@ -46,7 +52,7 @@ import vector117 from "@/assets/fa26_vector_117.svg";
 // FOREGROUND DECORATIONS
 import group83 from "@/assets/fa26_group83.svg";
 
-import Train from "../components/Train";
+import Train, { type TrainSegment } from "../components/Train";
 
 // Figma canvas dimensions (frame 362:2). STAGE_H is set so the stage's
 // rendered pixel height matches the actual document height — preventing
@@ -64,8 +70,186 @@ const pct = (x: number, y: number, w: number, h: number) => ({
   height: `${(h / STAGE_H) * 100}%`,
 });
 
+const stageX = (x: number) => `${(x / STAGE_W) * 100}%`;
+const stageY = (y: number) => `${(y / STAGE_H) * 100}%`;
+
+type Point = { x: number; y: number };
+type Cubic = { p0: Point; p1: Point; p2: Point; p3: Point };
+
+// Vector 116 is the visible outer rail in the hero. Keeping its source
+// Bezier data here makes the train rig sample the exact same curve that is
+// painted behind it instead of approximating the curve with scroll stops.
+const HERO_RAIL_X = 368;
+const HERO_RAIL_Y = 897;
+const HERO_RAIL_W = 1019;
+const HERO_RAIL_H = 214;
+const HERO_RAIL_VIEWBOX_W = 1024;
+const HERO_RAIL_VIEWBOX_H = 218.698;
+const HERO_RAIL_CUBICS: Cubic[] = [
+  {
+    p0: { x: 1021.5, y: 216.197 },
+    p1: { x: 1021.5, y: 216.197 },
+    p2: { x: 919.089, y: 149.566 },
+    p3: { x: 846.5, y: 122.197 },
+  },
+  {
+    p0: { x: 846.5, y: 122.197 },
+    p1: { x: 797.385, y: 103.679 },
+    p2: { x: 768.171, y: 97.8943 },
+    p3: { x: 717, y: 86.1975 },
+  },
+  {
+    p0: { x: 717, y: 86.1975 },
+    p1: { x: 665.361, y: 74.3936 },
+    p2: { x: 635.805, y: 70.5723 },
+    p3: { x: 583.5, y: 62.1975 },
+  },
+  {
+    p0: { x: 583.5, y: 62.1975 },
+    p1: { x: 484.039, y: 46.272 },
+    p2: { x: 327.5, y: 30.6975 },
+    p3: { x: 327.5, y: 30.6975 },
+  },
+  {
+    p0: { x: 327.5, y: 30.6975 },
+    p1: { x: 327.5, y: 30.6975 },
+    p2: { x: 249.182, y: 21.8601 },
+    p3: { x: 199, y: 16.1975 },
+  },
+  {
+    p0: { x: 199, y: 16.1975 },
+    p1: { x: 148.818, y: 10.5349 },
+    p2: { x: 109.633, y: 4.02242 },
+    p3: { x: 52, y: 2.69746 },
+  },
+  {
+    p0: { x: 52, y: 2.69746 },
+    p1: { x: 32.6742, y: 2.25317 },
+    p2: { x: 2.50001, y: 2.69746 },
+    p3: { x: 2.50001, y: 2.69746 },
+  },
+];
+
+const cubicAt = (a: number, b: number, c: number, d: number, t: number) => {
+  const inverse = 1 - t;
+  return inverse ** 3 * a
+    + 3 * inverse ** 2 * t * b
+    + 3 * inverse * t ** 2 * c
+    + t ** 3 * d;
+};
+
+const railYAtStageX = (stagePositionX: number) => {
+  const lastSegment = HERO_RAIL_CUBICS[HERO_RAIL_CUBICS.length - 1];
+  const localX = Math.min(
+    HERO_RAIL_CUBICS[0].p0.x,
+    Math.max(
+      lastSegment.p3.x,
+      (stagePositionX - HERO_RAIL_X) * (HERO_RAIL_VIEWBOX_W / HERO_RAIL_W),
+    ),
+  );
+  const segment = HERO_RAIL_CUBICS.find(
+    ({ p0, p3 }) => localX <= p0.x && localX >= p3.x,
+  ) ?? lastSegment;
+
+  // Every source segment runs right-to-left, so binary-searching its x
+  // coordinate gives a stable parametric sample without a path API or DOM
+  // measurement in the scroll loop.
+  let low = 0;
+  let high = 1;
+  for (let index = 0; index < 18; index += 1) {
+    const middle = (low + high) / 2;
+    const middleX = cubicAt(
+      segment.p0.x,
+      segment.p1.x,
+      segment.p2.x,
+      segment.p3.x,
+      middle,
+    );
+    if (middleX > localX) low = middle;
+    else high = middle;
+  }
+
+  const t = (low + high) / 2;
+  const localY = cubicAt(
+    segment.p0.y,
+    segment.p1.y,
+    segment.p2.y,
+    segment.p3.y,
+    t,
+  );
+  return HERO_RAIL_Y + localY * (HERO_RAIL_H / HERO_RAIL_VIEWBOX_H);
+};
+
+type TrainRigSpec = {
+  leftWheelX: number;
+  rightWheelX: number;
+  pivotX: number;
+};
+
+type TrainPose = { angle: number; top: number };
+
+const TRAIN_WIDTH = 539;
+const TRAIN_VIEWBOX_W = 600;
+const TRAIN_VIEWBOX_H = 96;
+const TRAIN_PIVOT_Y = 72;
+const TRAIN_WHEEL_CONTACT_Y = 89;
+const TRAIN_SCALE = TRAIN_WIDTH / TRAIN_VIEWBOX_W;
+
+// X coordinates are in the displayed (mirrored) train coordinate system.
+// Each rigid body gets its own axle pair and locomotive-side pivot.
+const TRAIN_RIG: Record<TrainSegment, TrainRigSpec> = {
+  "rear-car": {
+    leftWheelX: 32,
+    rightWheelX: 250,
+    pivotX: 276,
+  },
+  "front-car": {
+    leftWheelX: 310,
+    rightWheelX: 498,
+    pivotX: 518,
+  },
+  engine: {
+    leftWheelX: 543,
+    rightWheelX: 578,
+    pivotX: 528,
+  },
+};
+
+const trainPoseAt = (trainLeft: number, rig: TrainRigSpec): TrainPose => {
+  const pivotStageX = trainLeft + rig.pivotX * TRAIN_SCALE;
+  const contactY = (TRAIN_WHEEL_CONTACT_Y - TRAIN_PIVOT_Y) * TRAIN_SCALE;
+  const leftWheelX = (rig.leftWheelX - rig.pivotX) * TRAIN_SCALE;
+  const rightWheelX = (rig.rightWheelX - rig.pivotX) * TRAIN_SCALE;
+  let radians = 0;
+
+  // Rotating the axle offsets also changes their sampled x positions. A
+  // handful of fixed-point passes converges the chassis chord onto the rail.
+  for (let index = 0; index < 5; index += 1) {
+    const cosine = Math.cos(radians);
+    const sine = Math.sin(radians);
+    const leftStageX = pivotStageX + cosine * leftWheelX - sine * contactY;
+    const rightStageX = pivotStageX + cosine * rightWheelX - sine * contactY;
+    radians = Math.atan2(
+      railYAtStageX(rightStageX) - railYAtStageX(leftStageX),
+      rightStageX - leftStageX,
+    );
+  }
+
+  const cosine = Math.cos(radians);
+  const sine = Math.sin(radians);
+  const leftStageX = pivotStageX + cosine * leftWheelX - sine * contactY;
+  const leftRailY = railYAtStageX(leftStageX);
+  const rotatedLeftContactY = sine * leftWheelX + cosine * contactY;
+
+  return {
+    angle: radians * (180 / Math.PI),
+    top: leftRailY - TRAIN_PIVOT_Y * TRAIN_SCALE - rotatedLeftContactY,
+  };
+};
+
 const MainStage: React.FC = () => {
   const stageRef = useRef<HTMLDivElement | null>(null);
+  const reduceMotion = useReducedMotion();
   // Hero-section progress drives the top-hill train's travel along its
   // train tracks. The train should complete its run by the time the user
   // has scrolled past the hero — so we tie progress to the hero section's
@@ -79,21 +263,45 @@ const MainStage: React.FC = () => {
     target: heroEl ? { current: heroEl } : stageRef,
     offset: ["start start", "end start"],
   });
-  // Train tracks (Vector 116/117) sweep from x≈317 / y≈773 at the top-left
-  // down to x≈1196 / y≈950 at the right (CSS px on a 1440 viewport). The
-  // train's bottom edge needs to ride the rail-top, not float above it.
-  // Home position is pct(457, 820, 539, 72) — so home_top in css ≈ 707px,
-  // and the new container height ≈ 62css (matches the SVG's natural 600x80
-  // aspect, no more vertical stretching). trainY translates so the bottom
-  // (= home_top + 62 + dy) lands on the rail top: 820..920 css → dy 51..151.
-  const trainX = useTransform(heroProgress, [0, 1], [-60, 356]);
-  // trainY is calibrated so the train's bottom-right corner (after the
-  // current rotate) rides the rail line at every progress: ~34 css px
-  // lower at the start than the previous home position, ~27 css px
-  // higher at the end. Rails span y=773→950 (left→right) so the
-  // bottom-right corner lands within ~5px of the rail top throughout.
-  const trainY = useTransform(heroProgress, [0, 1], [40, 94]);
-  const trainRotate = useTransform(heroProgress, [0, 1], [6, 14]);
+  // Smooth wheel/track travel so high-resolution trackpads do not expose
+  // individual scroll deltas. Every waypoint is expressed in the Figma
+  // stage coordinate system; unlike pixel translate values, these scale at
+  // exactly the same rate as the rails at every viewport width.
+  const smoothHeroProgress = useSpring(heroProgress, {
+    stiffness: 145,
+    damping: 30,
+    mass: 0.28,
+    restDelta: 0.0005,
+  });
+  const trainStops = [0, 0.16, 0.32, 0.48, 1];
+  const trainLeftStage = useTransform(
+    smoothHeroProgress,
+    trainStops,
+    [390, 510, 690, 890, 890],
+  );
+  const trainLeft = useTransform(trainLeftStage, stageX);
+  const rearCarPose = useTransform(trainLeftStage, (left) =>
+    trainPoseAt(left, TRAIN_RIG["rear-car"]));
+  const rearCarTop = useTransform(rearCarPose, ({ top }) => stageY(top));
+  const rearCarRotate = useTransform(rearCarPose, ({ angle }) => angle);
+  const frontCarPose = useTransform(trainLeftStage, (left) =>
+    trainPoseAt(left, TRAIN_RIG["front-car"]));
+  const frontCarTop = useTransform(frontCarPose, ({ top }) => stageY(top));
+  const frontCarRotate = useTransform(frontCarPose, ({ angle }) => angle);
+  const enginePose = useTransform(trainLeftStage, (left) =>
+    trainPoseAt(left, TRAIN_RIG.engine));
+  const engineTop = useTransform(enginePose, ({ top }) => stageY(top));
+  const engineRotate = useTransform(enginePose, ({ angle }) => angle);
+  const trainOpacity = useTransform(
+    smoothHeroProgress,
+    [0, 0.45, 0.52, 1],
+    [1, 1, 0, 0],
+  );
+  const wheelRotation = useTransform(
+    smoothHeroProgress,
+    [0, 0.48, 1],
+    [0, -2880, -2880],
+  );
 
   return (
     <div
@@ -130,26 +338,56 @@ const MainStage: React.FC = () => {
       <img src={aboutHill}   alt="" className="absolute" style={pct(-73, 780, 1559, 1186)} />
 
       {/* Train tracks behind the top-hill train */}
-      <img src={vector116} alt="" className="absolute" style={pct(368, 897, 1019, 214)} />
-      <img src={vector117} alt="" className="absolute" style={pct(490, 893, 917, 211)} />
+      <img data-hero-rail src={vector116} alt="" className="absolute drop-shadow-[0_1px_0_rgba(255,255,255,0.18)]" style={pct(368, 897, 1019, 214)} />
+      <img data-hero-rail src={vector117} alt="" className="absolute drop-shadow-[0_1px_0_rgba(255,255,255,0.18)]" style={pct(490, 893, 917, 211)} />
 
-      {/* Top hill train — Figma 362:672 (457, 820, 539, 141). Travels
-          along the train tracks (Vector 116/117) as the user scrolls
-          through the hero. The outer motion.div translates along the
-          track curve via scroll progress; the inner div bobs subtly. */}
+      {/* Top hill train — three independently rigged rigid bodies. Every
+          axle pair is seated on Vector 116, so the consist bends with the
+          painted rail instead of rotating as one long plank. */}
       <motion.div
-        className="absolute"
+        data-hero-train-unit="rear-car"
+        className="absolute will-change-transform"
         style={{
-          ...pct(457, 820, 539, 72),
-          x: trainX,
-          y: trainY,
-          rotate: trainRotate,
-          transformOrigin: "center center",
+          left: trainLeft,
+          top: rearCarTop,
+          width: stageX(TRAIN_WIDTH),
+          aspectRatio: `${TRAIN_VIEWBOX_W} / ${TRAIN_VIEWBOX_H}`,
+          rotate: rearCarRotate,
+          opacity: trainOpacity,
+          transformOrigin: `${(TRAIN_RIG["rear-car"].pivotX / TRAIN_VIEWBOX_W) * 100}% ${(TRAIN_PIVOT_Y / TRAIN_VIEWBOX_H) * 100}%`,
         }}
       >
-        <div className="absolute inset-0 animate-train-bob">
-          <Train className="absolute inset-0" flip />
-        </div>
+        <Train className="absolute inset-0" flip wheelRotation={wheelRotation} visibleSegment="rear-car" />
+      </motion.div>
+      <motion.div
+        data-hero-train-unit="front-car"
+        className="absolute will-change-transform"
+        style={{
+          left: trainLeft,
+          top: frontCarTop,
+          width: stageX(TRAIN_WIDTH),
+          aspectRatio: `${TRAIN_VIEWBOX_W} / ${TRAIN_VIEWBOX_H}`,
+          rotate: frontCarRotate,
+          opacity: trainOpacity,
+          transformOrigin: `${(TRAIN_RIG["front-car"].pivotX / TRAIN_VIEWBOX_W) * 100}% ${(TRAIN_PIVOT_Y / TRAIN_VIEWBOX_H) * 100}%`,
+        }}
+      >
+        <Train className="absolute inset-0" flip wheelRotation={wheelRotation} visibleSegment="front-car" />
+      </motion.div>
+      <motion.div
+        data-hero-train-unit="engine"
+        className="absolute will-change-transform"
+        style={{
+          left: trainLeft,
+          top: engineTop,
+          width: stageX(TRAIN_WIDTH),
+          aspectRatio: `${TRAIN_VIEWBOX_W} / ${TRAIN_VIEWBOX_H}`,
+          rotate: engineRotate,
+          opacity: trainOpacity,
+          transformOrigin: `${(TRAIN_RIG.engine.pivotX / TRAIN_VIEWBOX_W) * 100}% ${(TRAIN_PIVOT_Y / TRAIN_VIEWBOX_H) * 100}%`,
+        }}
+      >
+        <Train className="absolute inset-0" flip wheelRotation={wheelRotation} visibleSegment="engine" />
       </motion.div>
 
       {/* Darkest hill — overlays the train so it disappears into the slope */}
@@ -173,19 +411,20 @@ const MainStage: React.FC = () => {
         style={{
           top: `${(1670 / STAGE_H) * 100}%`,
           width: `${(559 / STAGE_W) * 100}%`,
-          height: `${(82 / STAGE_H) * 100}%`,
+          aspectRatio: "600 / 96",
         }}
-        initial={{ x: "100vw" }}
-        animate={{ x: "-50vw" }}
-        transition={{ duration: 26, repeat: Infinity, ease: "linear" }}
+        initial={{ x: reduceMotion ? "26vw" : "100vw" }}
+        animate={{ x: reduceMotion ? "26vw" : "-50vw" }}
+        transition={reduceMotion
+          ? { duration: 0 }
+          : { duration: 26, repeat: Infinity, ease: "linear" }}
       >
-        <motion.div
-          className="absolute inset-0"
-          animate={{ y: [0, -3, 0, 2, 0] }}
-          transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
-        >
-          <Train className="absolute inset-0" />
-        </motion.div>
+        <div className="bridge-train-suspension absolute inset-0">
+          <Train
+            className="absolute inset-0"
+            wheelSpinDuration={reduceMotion ? undefined : 0.6}
+          />
+        </div>
       </motion.div>
 
       {/* Cliffs (= brown rocky mountains) flanking the bridge — z=20 so they

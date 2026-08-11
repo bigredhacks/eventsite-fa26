@@ -5,38 +5,40 @@ import menuCloseButton from "@/assets/menu_close.png";
 import NavButtonSet from "./NavButtonSet";
 
 const NavBar: React.FC = () => {
-  const [show, setShow] = useState(true);
-  const [lastScrollY, setLastScrollY] = useState(0);
-  const [disableHideUntil, setDisableHideUntil] = useState(0);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  const threshold = 100;
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [activeSection, setActiveSection] = useState<string | null>(null);
 
   useEffect(() => {
-    const handleScroll = () => {
-      const currentTime = Date.now();
-      const currentScrollY = window.scrollY;
-      const scrollDelta = currentScrollY - lastScrollY;
+    let frame = 0;
 
-      if (currentTime < disableHideUntil) {
-        setLastScrollY(currentScrollY);
-        return;
-      }
-      if (Math.abs(scrollDelta) < threshold) {
-        return;
-      }
-      if (scrollDelta > 0) {
-        setShow(false);
-      } else {
-        setShow(true);
-      }
-      setIsMobileMenuOpen(false);
-      setLastScrollY(currentScrollY);
+    const handleScroll = () => {
+      if (frame) return;
+      frame = window.requestAnimationFrame(() => {
+        frame = 0;
+        const currentScrollY = window.scrollY;
+        setIsScrolled(currentScrollY > 48);
+
+        const markerY = window.innerHeight * 0.32;
+        let nextSection: string | null = null;
+        for (const id of ["about", "tracks", "schedule", "faq"]) {
+          const section = document.getElementById(id);
+          if (section && section.getBoundingClientRect().top <= markerY) {
+            nextSection = id;
+          }
+        }
+        setActiveSection(nextSection);
+        setIsMobileMenuOpen(false);
+      });
     };
 
+    handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [lastScrollY, disableHideUntil]);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
+  }, []);
 
   useEffect(() => {
     const handleResize = () => {
@@ -54,32 +56,45 @@ const NavBar: React.FC = () => {
   };
 
   return (
-    <div
+    <header
+      data-navbar
       className={`
-        fixed top-0 w-full z-100 h-fit
-        bg-transparent
-        md:py-4 py-3
-        md:pl-12 pl-6
-        md:pr-32 pr-6
-        transition-transform duration-500
-         ${show ? "translate-y-0" : "-translate-y-full"}`}
+        fixed inset-x-0 top-0 z-100 h-fit pointer-events-none
+        transition-[padding] duration-500 ease-out
+        ${isScrolled
+          ? "md:pt-3 md:px-8 md:pr-32 pt-3 pl-3 pr-24"
+          : "md:py-4 md:pl-12 md:pr-32 py-3 pl-6 pr-24"}`}
     >
-      <div className="flex items-center justify-between">
-        <img src={brhLogoWhite} alt="BRH logo" className="md:h-16 h-12 z-100" />
+      <div
+        className={`nav-trail-shell pointer-events-auto relative z-[100] flex items-center justify-between overflow-visible
+          ${isScrolled ? "nav-trail-shell--scrolled md:px-5 md:py-2 px-3 py-2" : ""}
+          ${isMobileMenuOpen ? "nav-trail-shell--menu-open" : ""}`}
+      >
+        <img
+          src={brhLogoWhite}
+          alt="BRH logo"
+          className="nav-brand relative z-[100] w-auto"
+        />
 
-        <div className="hidden md:flex items-center gap-[clamp(20px,2.5vw,50px)]">
+        <nav
+          aria-label="Primary navigation"
+          className="relative z-[2] hidden md:flex items-center gap-[clamp(20px,2.5vw,50px)]"
+        >
           <NavButtonSet
-            setDisableHideUntil={setDisableHideUntil}
             onLinkClick={toggleMobileMenu}
+            activeTarget={activeSection}
           />
-        </div>
+        </nav>
 
         <button
           onClick={toggleMobileMenu}
-          className="md:hidden transition-transform duration-300 ease-in-out h-12 z-100"
+          className="nav-menu-button relative z-[100] md:hidden grid h-11 w-11 place-items-center rounded-full transition-transform duration-300 ease-in-out"
+          aria-label={isMobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+          aria-expanded={isMobileMenuOpen}
         >
           <img
             src={isMobileMenuOpen ? menuCloseButton : menuOpenButton}
+            alt=""
             className={`transform transition-transform duration-300 ease-in-out ${
               isMobileMenuOpen ? "rotate-180" : "rotate-0"
             }`}
@@ -91,7 +106,7 @@ const NavBar: React.FC = () => {
         className={`
           md:hidden overflow-hidden fixed top-0 left-0
           w-full z-90
-          bg-sky3/95 backdrop-blur-sm
+          mobile-nav-panel bg-sky4/96 backdrop-blur-xl
           transition-[max-height] duration-500 ease-in-out
           ${isMobileMenuOpen ? "max-h-[100vh]" : "max-h-0 overflow-hidden"}
         `}
@@ -101,12 +116,12 @@ const NavBar: React.FC = () => {
           gap-2.5 pt-24 pb-6 px-6 text-2xl uppercase tracking-wide"
         >
           <NavButtonSet
-            setDisableHideUntil={setDisableHideUntil}
             onLinkClick={toggleMobileMenu}
+            activeTarget={activeSection}
           />
         </div>
       </div>
-    </div>
+    </header>
   );
 };
 
