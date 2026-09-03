@@ -104,16 +104,18 @@ const NavBar: React.FC = () => {
 
       <div
         className={`
-          md:hidden overflow-hidden fixed top-0 left-0
+          md:hidden fixed top-0 left-0
           w-full z-90
           mobile-nav-panel bg-sky4/96 backdrop-blur-xl
           transition-[max-height] duration-500 ease-in-out
-          ${isMobileMenuOpen ? "max-h-[100vh]" : "max-h-0 overflow-hidden"}
+          ${isMobileMenuOpen
+            ? "max-h-[100dvh] overflow-y-auto overscroll-contain pointer-events-auto"
+            : "max-h-0 overflow-hidden pointer-events-none"}
         `}
       >
         <div
           className="flex flex-col items-center justify-end
-          gap-2.5 pt-24 pb-6 px-6 text-2xl uppercase tracking-wide"
+          gap-7 pt-28 pb-10 px-6 text-2xl uppercase tracking-wide"
         >
           <NavButtonSet
             onLinkClick={toggleMobileMenu}
