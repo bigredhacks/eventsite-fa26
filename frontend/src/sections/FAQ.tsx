@@ -23,7 +23,7 @@ const FAQ: React.FC<SectionProps> = ({ className }) => {
       className={`
         relative
         bg-transparent
-        md:px-32 px-8
+        md:px-32 xl:pl-44 xl:pr-20 px-8
         md:pt-32 pt-20 md:pb-0 pb-0
          ${className ?? ""}`}
     >

@@ -20,7 +20,19 @@ const NavButton: React.FC<NavButtonProps> = ({
     const section = document.getElementById(targetId);
     const scrollSpeed = 500;
     if (section) {
-      const targetY = section.getBoundingClientRect().top + window.scrollY;
+      const navbar = document.querySelector<HTMLElement>("[data-navbar]");
+      // Leave a small visual gap below the fixed navbar. Measuring the real
+      // rendered height keeps the destination clear across mobile, tablet,
+      // and desktop navbar states instead of relying on a breakpoint-specific
+      // hard-coded offset.
+      // The bar grows slightly as it changes from its top-of-page treatment
+      // into the scrolled treatment, so the extra 24px also absorbs that
+      // transition without allowing the destination to slip underneath it.
+      const navbarClearance = (navbar?.getBoundingClientRect().height ?? 0) + 24;
+      const targetY = Math.max(
+        0,
+        section.getBoundingClientRect().top + window.scrollY - navbarClearance,
+      );
       smoothScrollTo(targetY, scrollSpeed);
     }
     if (onClick) onClick();

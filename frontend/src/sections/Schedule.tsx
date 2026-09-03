@@ -95,37 +95,48 @@ const hoursToHm = (h: number) => {
 
 const pad2 = (n: number) => String(n).padStart(2, "0");
 
-// Build an .ics file body for a single block and trigger a download. We
-// inline the ICS string instead of using a library because the format is
-// trivial and the dependency would dwarf the payload.
-const downloadIcsForBlock = (
-  block: Block,
-  dayIndex: number,
-) => {
-  const [year, month, day] = EVENT_DATE_BY_INDEX[dayIndex];
-  const start = hoursToHm(block.startHour);
-  const end = hoursToHm(block.startHour + block.durationHours);
-  // ICS uses local floating times (no TZ suffix) — calendar apps render in
-  // the user's local timezone, which is fine for a single-location event.
-  const dt = (h: number, m: number) =>
-    `${year}${pad2(month)}${pad2(day)}T${pad2(h)}${pad2(m)}00`;
-  const uid = `brh-fa26-${dayIndex}-${block.startHour}-${block.label
-    .replace(/\s+/g, "-")
-    .toLowerCase()}@bigredhacks.com`;
+// Build one .ics file containing every schedule block. Calendar files support
+// multiple VEVENT records, so a single download can import the full weekend.
+const downloadFullSchedule = () => {
+  const timestamp = new Date()
+    .toISOString()
+    .replace(/[-:]/g, "")
+    .replace(/\.\d{3}Z$/, "Z");
+
+  const eventLines = DAYS.flatMap((day, dayIndex) =>
+    day.blocks.flatMap((block) => {
+      const [year, month, calendarDay] = EVENT_DATE_BY_INDEX[dayIndex];
+      const start = hoursToHm(block.startHour);
+      const end = hoursToHm(block.startHour + block.durationHours);
+      // These are floating local times so calendar apps preserve the listed
+      // event times when importing the schedule.
+      const dt = (h: number, m: number) =>
+        `${year}${pad2(month)}${pad2(calendarDay)}T${pad2(h)}${pad2(m)}00`;
+      const uid = `brh-fa26-${dayIndex}-${block.startHour}-${block.label
+        .replace(/\s+/g, "-")
+        .toLowerCase()}@bigredhacks.com`;
+
+      return [
+        "BEGIN:VEVENT",
+        `UID:${uid}`,
+        `DTSTAMP:${timestamp}`,
+        `DTSTART:${dt(start.hour, start.min)}`,
+        `DTEND:${dt(end.hour, end.min)}`,
+        `SUMMARY:${block.label}`,
+        "LOCATION:Cornell University",
+        "DESCRIPTION:BigRed//Hacks 2026 — added from the event schedule.",
+        "END:VEVENT",
+      ];
+    }),
+  );
+
   const lines = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
     "PRODID:-//BigRedHacks//FA26//EN",
     "CALSCALE:GREGORIAN",
-    "BEGIN:VEVENT",
-    `UID:${uid}`,
-    `DTSTAMP:${dt(start.hour, start.min)}`,
-    `DTSTART:${dt(start.hour, start.min)}`,
-    `DTEND:${dt(end.hour, end.min)}`,
-    `SUMMARY:${block.label}`,
-    "LOCATION:Cornell University",
-    "DESCRIPTION:BigRed//Hacks 2026 — added from the event schedule.",
-    "END:VEVENT",
+    "METHOD:PUBLISH",
+    ...eventLines,
     "END:VCALENDAR",
   ];
   const blob = new Blob([lines.join("\r\n")], {
@@ -134,7 +145,7 @@ const downloadIcsForBlock = (
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `brh-${block.label.replace(/\s+/g, "-").toLowerCase()}.ics`;
+  a.download = "bigredhacks-2026-full-schedule.ics";
   document.body.appendChild(a);
   a.click();
   a.remove();
@@ -200,11 +211,74 @@ const Schedule: React.FC<SectionProps> = ({ className }) => {
         style={{ top: rightBoatY, rotate: 180 }}
       />
 
-      <h2 className="font-spartan font-extrabold text-white1 text-5xl md:text-7xl tracking-tight mb-10 self-start ml-4 lg:ml-32">
-        SCHEDULE
-      </h2>
+      <div className="relative z-20 mb-10 flex w-full max-w-2xl items-center xl:max-w-[80%]">
+        <h2 className="shrink-0 font-spartan font-extrabold text-white1 text-[clamp(2rem,11vw,3rem)] md:text-7xl tracking-tight">
+          SCHEDULE
+        </h2>
+        <div className="flex min-w-0 flex-1 -translate-y-1 justify-end sm:-translate-y-2.5">
+          <button
+            type="button"
+            onClick={downloadFullSchedule}
+            className="
+              inline-flex min-h-12 w-24 shrink-0 items-center justify-center rounded-full
+              border border-white1/20 bg-sky4
+              px-4 py-3 text-center font-spartan text-xs font-bold uppercase
+              leading-[1.1] tracking-wide text-white1
+              shadow-[0_5px_16px_rgba(14,40,47,0.2)]
+              transition-[transform,background-color,box-shadow] duration-150
+              hover:-translate-y-0.5 hover:bg-red1 hover:shadow-lg
+              active:translate-y-0 active:scale-[0.98]
+              focus:outline-none focus-visible:ring-2 focus-visible:ring-white1/70
+              sm:min-h-0 sm:w-auto sm:whitespace-nowrap sm:px-5 sm:py-3 sm:text-sm
+            "
+            aria-label="Add the full BigRed Hacks schedule to your calendar"
+          >
+            <span className="translate-y-0.5 sm:translate-y-0">
+              Add to calendar
+            </span>
+          </button>
+        </div>
+      </div>
 
-      <div className="bg-green6 rounded-[28px] shadow-[2px_4px_4px_0_rgba(0,0,0,0.25)] p-4 md:p-8 overflow-x-auto relative z-20 w-full max-w-[80%]">
+      {/* On phones, tablets, and compact laptops, each day becomes its own
+          agenda card. A four-column timeline does not leave enough width for
+          readable overlapping events until the wide-desktop breakpoint. */}
+      <div className="xl:hidden relative z-20 w-full max-w-2xl space-y-4">
+        {DAYS.map((day) => (
+          <article
+            key={day.date}
+            className="overflow-hidden rounded-[24px] bg-green6 shadow-[2px_4px_4px_0_rgba(0,0,0,0.25)]"
+          >
+            <header className="border-b border-white1/15 px-5 py-4">
+              <h3 className="font-spartan text-3xl font-extrabold text-white1">
+                {day.date}
+              </h3>
+            </header>
+
+            <div className="space-y-2 p-3">
+              {day.blocks.map((block, blockIndex) => (
+                <div
+                  key={`${block.label}-${blockIndex}`}
+                  className={`
+                    ${shadeBg(block.shade)}
+                    flex min-h-16 w-full items-center justify-between gap-4
+                    rounded-2xl px-4 py-3 text-left text-white1
+                  `}
+                >
+                  <span className="min-w-0 font-bevietnam text-base font-bold leading-tight sm:text-lg">
+                    {block.label}
+                  </span>
+                  <span className="shrink-0 rounded-full bg-green7/35 px-3 py-1.5 font-bevietnam text-xs font-bold leading-none sm:text-sm">
+                    {block.time}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </article>
+        ))}
+      </div>
+
+      <div className="hidden xl:block bg-green6 rounded-[28px] shadow-[2px_4px_4px_0_rgba(0,0,0,0.25)] p-8 overflow-x-auto relative z-20 w-full max-w-[80%]">
         {/* Date header */}
         <div className="grid grid-cols-[60px_1fr_1fr_1fr] gap-x-4 mb-4 font-spartan font-extrabold text-white1 text-2xl md:text-4xl text-center">
           <div />
@@ -229,7 +303,7 @@ const Schedule: React.FC<SectionProps> = ({ className }) => {
           </div>
 
           {/* Day columns */}
-          {DAYS.map((day, dayIndex) => {
+          {DAYS.map((day) => {
             // Pre-compute each block's actual top px. We start with the
             // duration-accurate top (startHour * ROW_HEIGHT_PX) but clamp
             // it forward so each block sits below the previous block's
@@ -280,22 +354,15 @@ const Schedule: React.FC<SectionProps> = ({ className }) => {
                   />
                 ))}
 
-                {/* Blocks — rendered as buttons so they're keyboard
-                    focusable and accessible. Click downloads an .ics
-                    invite for the event. */}
+                {/* Event blocks are informational; the section-level action
+                    above exports the complete schedule in one calendar file. */}
                 {laid.map(({ b, topPx, heightPx }, i) => (
-                  <button
+                  <div
                     key={i}
-                    type="button"
-                    onClick={() => downloadIcsForBlock(b, dayIndex)}
-                    title={`Add "${b.label}" to your calendar`}
                     className={`
                       absolute ${blockSideStyle(b.side)} ${shadeBg(b.shade)}
                       rounded-lg ${b.marker ? "px-3 py-1.5" : "p-2 md:p-3"}
                       text-left overflow-hidden
-                      transition-transform transition-shadow duration-150
-                      hover:scale-[1.02] hover:shadow-lg
-                      focus:outline-none focus-visible:ring-2 focus-visible:ring-white1/70
                     `}
                     style={{
                       top: `${topPx}px`,
@@ -336,7 +403,7 @@ const Schedule: React.FC<SectionProps> = ({ className }) => {
                         </p>
                       </div>
                     )}
-                  </button>
+                  </div>
                 ))}
               </div>
             );

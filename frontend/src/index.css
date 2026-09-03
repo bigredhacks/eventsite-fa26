@@ -314,12 +314,30 @@ button {
 }
 
 .hero-about {
-  width: 46.946%;
+  /* Give the copy 25% more horizontal room than the original Figma frame.
+     Fewer wraps also keep the block clear of the bridge train below. */
+  width: 58.683%;
+}
+
+.hero-about__heading {
+  margin-bottom: 1.5vw;
+  font-size: 4.3vw;
+  line-height: 1;
+}
+
+.hero-about__body {
+  font-size: clamp(8px, 1.5vw, 22px);
+  line-height: 1.32;
+  text-wrap: pretty;
+}
+
+.hero-about__body > * + * {
+  margin-top: clamp(3px, 1vw, 14px);
 }
 
 @media (max-width: 640px) {
   .hero-about {
-    width: 63%;
+    width: 78.75%;
   }
 }
 
@@ -337,7 +355,7 @@ button {
   }
 
   .hero-about {
-    width: 72%;
+    width: 90%;
   }
 }
 

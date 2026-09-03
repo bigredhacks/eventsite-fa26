@@ -41,12 +41,12 @@ const Accordion: React.FC<AccordionProps> = ({ items }) => {
               </h3>
             </button>
             <div
-              className={`grid transition-[grid-template-rows] duration-400 pl-10 md:pl-12 ${
-                open ? "grid-rows-[1fr] mt-3" : "grid-rows-[0fr]"
+              className={`grid pl-10 transition-[grid-template-rows] duration-400 ease-in-out md:pl-12 ${
+                open ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
               }`}
             >
-              <div className="overflow-hidden">
-                <p className="text-white1/85 text-base md:text-lg font-light leading-snug">
+              <div className="min-h-0 overflow-hidden">
+                <p className="pt-3 text-base font-light leading-snug text-white1/85 md:text-lg">
                   {item.content}
                 </p>
               </div>
