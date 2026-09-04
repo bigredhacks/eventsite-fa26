@@ -2,3 +2,11 @@
   width: 100%;
   overflow-x: hidden;
 }
+
+.app-shell {
+  /* MainStage is absolutely positioned and can become taller than the
+     in-flow sections at wide aspect ratios. Explicitly clip that excess so
+     it cannot extend the document's scroll range beyond the footer. */
+  overflow-y: hidden;
+  overflow-y: clip;
+}

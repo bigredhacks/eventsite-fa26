@@ -52,6 +52,7 @@
 html {
   /* Block rubber-band overscroll past the document edges. */
   overscroll-behavior-y: none;
+  background-color: var(--color-sky4);
 }
 
 :root {
@@ -61,11 +62,10 @@ html {
 
   color-scheme: light;
   color: #1a1a1a;
-  /* sky3 = main body sky (#81b7e3). The MainStage canvas paints sky3 over
-     most of the doc; setting the html fallback to the same color means any
-     uncovered area (overscroll bounce, gap below the stage where the
-     sponsor section lives) blends seamlessly with the surrounding sky. */
-  background-color: var(--color-sky3);
+  /* The app shell paints the landscape sky. Keeping the browser canvas in
+     the footer color makes any platform-level bottom-edge bounce visually
+     terminate at the footer instead of exposing another strip of sky. */
+  background-color: var(--color-sky4);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -88,9 +88,10 @@ body {
   place-items: center;
   min-width: 320px;
   min-height: 100vh;
+  min-height: 100dvh;
   overflow-x: hidden;
-  /* Prevent overscroll-bounce past the footer from revealing the sky-blue
-     html background. `none` blocks rubber-banding entirely on macOS. */
+  background-color: var(--color-sky4);
+  /* Keep bottom-edge rubber-banding from moving beyond the footer canvas. */
   overscroll-behavior-y: none;
 }
 
@@ -194,12 +195,23 @@ button {
 
 .nav-apply {
   border: 1px solid rgb(255 255 255 / 0.14);
+  /* Preserve the original rendered weight explicitly. Previously the shared
+     500 request resolved to this available 700 face through font matching. */
+  font-weight: 700;
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.12);
   transition:
     color 220ms ease,
     transform 220ms ease,
     background-color 380ms ease,
     box-shadow 380ms ease;
+}
+
+.nav-apply__label {
+  /* The shared negative tracking leaves negative space after the final glyph.
+     Balance that space so the visible letterforms—not merely their line
+     box—are centered. Font-relative values keep the correction responsive. */
+  margin-inline-end: 0.07em;
+  transform: translateY(0.08em);
 }
 
 .nav-trail-shell--scrolled .nav-apply {
@@ -384,6 +396,54 @@ button {
   .hero-train-suspension,
   .bridge-train-suspension {
     animation: none;
+  }
+}
+
+/* Sponsor harbor: one data-driven boat system keeps the partner marks
+   visually related while three vessel widths communicate contribution. */
+.sponsor-harbor {
+  isolation: isolate;
+}
+
+.sponsor-harbor::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  inset: 5rem 0 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 18% 30%, rgb(255 255 255 / 0.1), transparent 28%),
+    radial-gradient(ellipse at 80% 58%, rgb(255 255 255 / 0.08), transparent 31%);
+}
+
+.sponsor-vessel {
+  transform-origin: 50% 82%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.sponsor-vessel[data-tier="flagship"] {
+  width: min(70vw, 330px);
+}
+
+.sponsor-vessel[data-tier="partner"] {
+  width: min(40vw, 220px);
+}
+
+.sponsor-vessel[data-tier="supporter"] {
+  width: min(28vw, 190px);
+}
+
+@media (min-width: 768px) {
+  .sponsor-vessel[data-tier="flagship"] {
+    width: clamp(280px, 24vw, 340px);
+  }
+
+  .sponsor-vessel[data-tier="partner"] {
+    width: clamp(220px, 18vw, 270px);
+  }
+
+  .sponsor-vessel[data-tier="supporter"] {
+    width: clamp(170px, 14vw, 210px);
   }
 }
 

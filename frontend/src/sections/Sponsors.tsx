@@ -1,72 +1,52 @@
 import { SectionProps } from "./SectionProps";
-import SponsorBoatV2 from "../components/SponsorBoatV2";
+import SponsorVessel from "../components/SponsorVessel";
 import Waves from "../components/Waves";
-
-// Per Figma node 362:262 — sponsors are still in drafts. Three boats are
-// laid out on a 1565 × 696 frame: title at top-left, mastra (yellow)
-// upper-right, arriving (green) + soon (blue) clustered along the
-// horizontal middle of the lower half. We place each boat as a percentage
-// of an inner aspect-locked layout box so the proportions match Figma 1:1
-// regardless of viewport width.
-//
-// Figma coords (Frame 45 = the boats container, 1565 × 543, sits below the
-// 153px title block). Boat positions are relative to Frame 45's top-left:
-//   mastra:   x=1372, y=0,   w=268, h=212
-//   arriving: x=454,  y=263, w=420, h=280
-//   soon:     x=482,  y=271, w=357, h=264
-
-const BOX_W = 1565;
-const BOX_H = 743;
-
-const pct = (x: number, y: number, w: number) => ({
-  left: `${(x / BOX_W) * 100}%`,
-  top: `${(y / BOX_H) * 100}%`,
-  width: `${(w / BOX_W) * 100}%`,
-});
+import {
+  getSponsorTier,
+  SPONSORS,
+  SPONSOR_TIER_ORDER,
+} from "../config/sponsors";
 
 const Sponsors: React.FC<SectionProps> = ({ className }) => {
   return (
     <section
       id="sponsors"
-      className={`
-        relative
-        bg-transparent
-        md:px-32 px-8
-        md:pt-8 pt-10
-        md:pb-0 pb-24
-        ${className ?? ""}`}
+      className={`sponsor-harbor relative overflow-hidden bg-transparent px-5 pb-28 pt-10 sm:px-8 md:px-16 md:pb-36 md:pt-12 lg:px-32 ${className ?? ""}`}
     >
-      <h2 className="font-spartan font-extrabold text-white1 text-5xl md:text-7xl tracking-tight relative z-20">
-        OUR SPONSORS
-      </h2>
-
-      {/* Aspect-locked layout box that mirrors the Figma 1565×696 frame.
-          Boats are absolutely positioned by percentage of this box so the
-          spacing matches Figma exactly. */}
-      <div
-        className="relative w-full mt-4 z-20"
-        style={{ aspectRatio: `${BOX_W} / ${BOX_H}` }}
-      >
-        {/* Mastra-style yellow accent boat — upper right */}
-        <div className="absolute" style={pct(1372, 0, 268)}>
-          <SponsorBoatV2 variant="mastra" index={2} fill />
+      <div className="relative z-20 mx-auto max-w-[1280px]">
+        <div className="max-w-3xl">
+          <h2 className="font-spartan text-5xl font-extrabold tracking-tight text-white1 md:text-7xl">
+            OUR SPONSORS
+          </h2>
+          <p className="mt-3 max-w-2xl font-bevietnam text-sm font-medium leading-relaxed text-white1/80 sm:text-base md:mt-4 md:text-lg">
+            The crew helping BigRed//Hacks turn ambitious ideas into something real.
+          </p>
         </div>
 
-        {/* Arriving (green) — lower middle, sits just left of Soon with a
-            ~28px gap between them. Frame x=31 puts its right edge at
-            x=454, leaving a 28-unit gap to Soon's left edge at x=482. */}
-        <div className="absolute" style={pct(31, 263, 420)}>
-          <SponsorBoatV2 variant="arriving" index={0} fill />
-        </div>
+        <div className="relative mt-8 md:mt-10" aria-label="BigRed Hacks sponsors">
+          {SPONSOR_TIER_ORDER.map((tier, rowIndex) => {
+            const sponsors = SPONSORS.filter(
+              (sponsor) => getSponsorTier(sponsor.contribution) === tier,
+            );
 
-        {/* Soon (blue) — lower middle, just right of Arriving */}
-        <div className="absolute" style={pct(482, 271, 357)}>
-          <SponsorBoatV2 variant="soon" index={1} fill />
+            return (
+              <div
+                key={tier}
+                role="list"
+                className={`sponsor-fleet-row flex flex-wrap items-end justify-center gap-x-3 gap-y-1 sm:gap-x-5 md:gap-x-6 ${rowIndex > 0 ? "-mt-1 sm:-mt-3 md:-mt-5" : ""}`}
+              >
+                {sponsors.map((sponsor) => (
+                  <div role="listitem" key={sponsor.name}>
+                    <SponsorVessel sponsor={sponsor} />
+                  </div>
+                ))}
+              </div>
+            );
+          })}
         </div>
       </div>
 
-      {/* Animated waves at bottom */}
-      <div className="absolute bottom-0 left-0 w-full h-24 md:h-32 z-10">
+      <div className="absolute bottom-0 left-0 z-10 h-24 w-full md:h-32">
         <Waves className="absolute inset-0" />
       </div>
     </section>
