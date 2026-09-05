@@ -30,7 +30,8 @@ interface SponsorVesselProps {
   sponsor: SponsorProfile;
 }
 
-const SAIL_LOGO_CENTER = { x: 208, y: 122 };
+// Balance the logos within the sail while leaving space above the lower seam.
+const SAIL_LOGO_CENTER = { x: 210, y: 116 };
 
 const SponsorVessel: React.FC<SponsorVesselProps> = ({ sponsor }) => {
   const tier = getSponsorTier(sponsor.contribution);
@@ -74,14 +75,14 @@ const SponsorVessel: React.FC<SponsorVesselProps> = ({ sponsor }) => {
           strokeLinejoin="round"
         />
         <path
-          d="M86 62C166 47 252 51 328 73C332 74 334 77 334 81V168C334 175 330 179 323 179H86V62Z"
+          d="M86 70C166 48 254 48 334 70V168Q334 179 323 179H97Q86 179 86 168V70Z"
           fill={isDarkSail ? "#164f63" : "#fff8e6"}
           stroke={isDarkSail ? "#f4ead0" : "#18445a"}
           strokeWidth="4"
           strokeLinejoin="round"
         />
         <path
-          d="M98 163C178 154 259 158 322 170"
+          d="M98 172C172 164 248 164 322 172"
           fill="none"
           stroke={isDarkSail ? "#f4ead0" : "#18445a"}
           strokeWidth="2"

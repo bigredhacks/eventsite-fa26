@@ -1,7 +1,6 @@
 import mechanizeLogo from "@/assets/sponsors/mechanize.svg";
 import scmLogo from "@/assets/sponsors/scm.svg";
 import afterQueryLogo from "@/assets/sponsors/afterquery.svg";
-import elevenLabsLogo from "@/assets/sponsors/elevenlabs.svg";
 import sandiaLogo from "@/assets/sponsors/sandia.png";
 import cursorLogo from "@/assets/sponsors/cursor.svg";
 import capitalOneLogo from "@/assets/sponsors/capital-one.svg";
@@ -110,15 +109,6 @@ export const SPONSORS: SponsorProfile[] = [
     logoTone: "dark",
     logoWidth: 89,
     logoHeight: 73,
-  },
-  {
-    name: "ElevenLabs",
-    href: "https://elevenlabs.io/",
-    logo: elevenLabsLogo,
-    contribution: 0,
-    logoTone: "dark",
-    logoWidth: 205,
-    logoHeight: 43,
   },
   {
     name: "AWAKE Chocolate",

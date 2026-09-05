@@ -18,9 +18,6 @@ const Sponsors: React.FC<SectionProps> = ({ className }) => {
           <h2 className="font-spartan text-5xl font-extrabold tracking-tight text-white1 md:text-7xl">
             OUR SPONSORS
           </h2>
-          <p className="mt-3 max-w-2xl font-bevietnam text-sm font-medium leading-relaxed text-white1/80 sm:text-base md:mt-4 md:text-lg">
-            The crew helping BigRed//Hacks turn ambitious ideas into something real.
-          </p>
         </div>
 
         <div className="relative mt-8 md:mt-10" aria-label="BigRed Hacks sponsors">
