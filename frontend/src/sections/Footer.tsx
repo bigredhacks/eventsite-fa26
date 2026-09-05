@@ -4,7 +4,7 @@ import brhLogoWhite from "@/assets/brh_logo_white.png";
 export default function Footer() {
   return (
     <footer
-      className="sticky bottom-0 left-0 w-full
+      className="relative w-full
                  flex flex-col md:flex-row
                  bg-sky4 font-bevietnam font-semibold text-white1
                  justify-between md:items-end

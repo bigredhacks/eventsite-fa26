@@ -13,7 +13,7 @@ import Footer from "./sections/Footer";
 
 function App() {
   return (
-    <div className="relative w-full">
+    <div className="app-shell relative isolate w-full bg-sky3">
       <MLHBadge />
       <NavBar />
 

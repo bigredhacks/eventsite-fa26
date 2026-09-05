@@ -60,10 +60,10 @@ const NavButtonSet: React.FC<Props> = ({
         onClick={onLinkClick}
         className={
           NAV_LINK_CLASSES +
-          " nav-apply bg-sky4 text-white1 rounded-full px-6 py-3"
+          " nav-apply inline-flex items-center justify-center whitespace-nowrap bg-sky4 text-white1 rounded-full px-6 py-3"
         }
       >
-        Apply
+        <span className="nav-apply__label">Apply</span>
       </a>
     </>
   );
