@@ -5,6 +5,9 @@
 
 [build.environment]
   NODE_VERSION = "22"
+  # PORT is non-sensitive; its numeric value can match bundled library code.
+  # Keep secret scanning enabled for all other environment variables.
+  SECRETS_SCAN_OMIT_KEYS = "PORT"
 
 [[redirects]]
   from = "/*"
