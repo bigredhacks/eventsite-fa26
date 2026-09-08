@@ -149,14 +149,73 @@ button {
 /* Keep the mark at a stable size while the capsule dissolves and its contents
    return to the open navigation layout. */
 .nav-brand {
-  height: 2.75rem;
+  height: clamp(1.75rem, calc(30vw - 4.25rem), 2.25rem);
   flex: none;
 }
 
+.nav-countdown {
+  position: relative;
+  z-index: 2;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: clamp(88px, calc(58vw - 98px), 120px);
+  min-height: 42px;
+  /* Offset Spartan's extra space below the glyphs for optical centering. */
+  padding: 11px 10px 7px;
+  border: 1px solid rgb(255 255 255 / 0.12);
+  border-radius: 999px;
+  background: rgb(3 80 109 / 0.88);
+  color: var(--color-white1);
+  font-family: var(--font-spartan);
+  box-shadow: 0 2px 6px rgb(14 40 47 / 0.08);
+}
+
+.nav-countdown--closed {
+  background: var(--color-red3);
+}
+
+.nav-countdown__label {
+  font-size: 11px;
+  line-height: 1.2;
+  text-align: center;
+  text-wrap: balance;
+}
+
+.nav-countdown__time {
+  font-size: 20px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .nav-trail-shell .nav-brand { height: 2.75rem; }
+  .nav-trail-shell nav { gap: 10px; }
+  .nav-trail-shell .nav-link,
+  .nav-trail-shell .nav-apply { font-size: 18px; }
+  .nav-trail-shell .nav-apply { padding-inline: 16px; }
+}
+
 @media (min-width: 768px) {
+  .nav-countdown {
+    width: 132px;
+  }
+
+  .nav-countdown__label { font-size: 12px; }
+  .nav-countdown__time { font-size: 22px; }
+
   .nav-brand {
     height: 3.5rem;
   }
+}
+
+@media (min-width: 1024px) {
+  .nav-countdown { width: 144px; }
 }
 
 .nav-link {

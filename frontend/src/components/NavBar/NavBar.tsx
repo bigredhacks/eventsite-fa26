@@ -3,6 +3,7 @@ import brhLogoWhite from "@/assets/brh_logo_white.png";
 import menuOpenButton from "@/assets/menu_open.png";
 import menuCloseButton from "@/assets/menu_close.png";
 import NavButtonSet from "./NavButtonSet";
+import ApplicationCountdown from "./ApplicationCountdown";
 
 const NavBar: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -63,11 +64,11 @@ const NavBar: React.FC = () => {
         transition-[padding] duration-500 ease-out
         ${isScrolled
           ? "md:pt-3 md:px-8 md:pr-32 pt-3 pl-3 pr-24"
-          : "md:py-4 md:pl-12 md:pr-32 py-3 pl-6 pr-24"}`}
+          : "md:py-4 md:pl-12 md:pr-32 py-3 pl-3 sm:pl-6 pr-24"}`}
     >
       <div
-        className={`nav-trail-shell pointer-events-auto relative z-[100] flex items-center justify-between overflow-visible
-          ${isScrolled ? "nav-trail-shell--scrolled md:px-5 md:py-2 px-3 py-2" : ""}
+        className={`nav-trail-shell pointer-events-auto relative z-[100] flex items-center justify-between gap-1 md:gap-3 overflow-visible
+          ${isScrolled ? "nav-trail-shell--scrolled md:px-5 md:py-2 px-2 py-2" : ""}
           ${isMobileMenuOpen ? "nav-trail-shell--menu-open" : ""}`}
       >
         <img
@@ -75,6 +76,8 @@ const NavBar: React.FC = () => {
           alt="BRH logo"
           className="nav-brand relative z-[100] w-auto"
         />
+
+        <ApplicationCountdown />
 
         <nav
           aria-label="Primary navigation"
@@ -88,7 +91,7 @@ const NavBar: React.FC = () => {
 
         <button
           onClick={toggleMobileMenu}
-          className="nav-menu-button relative z-[100] md:hidden grid h-11 w-11 place-items-center rounded-full transition-transform duration-300 ease-in-out"
+          className="nav-menu-button relative z-[100] md:hidden grid h-11 w-11 shrink-0 place-items-center rounded-full transition-transform duration-300 ease-in-out"
           aria-label={isMobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
           aria-expanded={isMobileMenuOpen}
         >
