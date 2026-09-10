@@ -75,83 +75,6 @@ const MIN_BLOCK_HEIGHT_PX = 64;
 // readers about when the next event actually starts.
 const MIN_MARKER_HEIGHT_PX = 36;
 
-// Map dayIndex (0=10/2, 1=10/3, 2=10/4) to absolute calendar dates for
-// the .ics export. Year/month locked to the FA26 hackathon weekend.
-const EVENT_DATE_BY_INDEX: Record<number, [number, number, number]> = {
-  0: [2026, 10, 2],
-  1: [2026, 10, 3],
-  2: [2026, 10, 4],
-};
-
-// Convert a `startHour` (offset in hours from 9 AM on the day) to a tuple
-// (hour, minute) and whether this should roll over into the next day. The
-// schedule extends past midnight on the first day (workshops 19:30–22:30
-// is fine, but anything spilling past 23:59 would need rollover handling).
-const hoursToHm = (h: number) => {
-  const baseHour = 9 + Math.floor(h);
-  const min = Math.round((h - Math.floor(h)) * 60);
-  return { hour: baseHour, min };
-};
-
-const pad2 = (n: number) => String(n).padStart(2, "0");
-
-// Build one .ics file containing every schedule block. Calendar files support
-// multiple VEVENT records, so a single download can import the full weekend.
-const downloadFullSchedule = () => {
-  const timestamp = new Date()
-    .toISOString()
-    .replace(/[-:]/g, "")
-    .replace(/\.\d{3}Z$/, "Z");
-
-  const eventLines = DAYS.flatMap((day, dayIndex) =>
-    day.blocks.flatMap((block) => {
-      const [year, month, calendarDay] = EVENT_DATE_BY_INDEX[dayIndex];
-      const start = hoursToHm(block.startHour);
-      const end = hoursToHm(block.startHour + block.durationHours);
-      // These are floating local times so calendar apps preserve the listed
-      // event times when importing the schedule.
-      const dt = (h: number, m: number) =>
-        `${year}${pad2(month)}${pad2(calendarDay)}T${pad2(h)}${pad2(m)}00`;
-      const uid = `brh-fa26-${dayIndex}-${block.startHour}-${block.label
-        .replace(/\s+/g, "-")
-        .toLowerCase()}@bigredhacks.com`;
-
-      return [
-        "BEGIN:VEVENT",
-        `UID:${uid}`,
-        `DTSTAMP:${timestamp}`,
-        `DTSTART:${dt(start.hour, start.min)}`,
-        `DTEND:${dt(end.hour, end.min)}`,
-        `SUMMARY:${block.label}`,
-        "LOCATION:Cornell University",
-        "DESCRIPTION:BigRed//Hacks 2026 — added from the event schedule.",
-        "END:VEVENT",
-      ];
-    }),
-  );
-
-  const lines = [
-    "BEGIN:VCALENDAR",
-    "VERSION:2.0",
-    "PRODID:-//BigRedHacks//FA26//EN",
-    "CALSCALE:GREGORIAN",
-    "METHOD:PUBLISH",
-    ...eventLines,
-    "END:VCALENDAR",
-  ];
-  const blob = new Blob([lines.join("\r\n")], {
-    type: "text/calendar;charset=utf-8",
-  });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "bigredhacks-2026-full-schedule.ics";
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
-};
-
 const shadeBg = (s: Block["shade"]) =>
   s === "dark" ? "bg-green7" : s === "medium" ? "bg-green3" : "bg-green2";
 
@@ -215,29 +138,6 @@ const Schedule: React.FC<SectionProps> = ({ className }) => {
         <h2 className="shrink-0 font-spartan font-extrabold text-white1 text-[clamp(2rem,11vw,3rem)] md:text-7xl tracking-tight">
           SCHEDULE
         </h2>
-        <div className="flex min-w-0 flex-1 -translate-y-1 justify-end sm:-translate-y-2.5">
-          <button
-            type="button"
-            onClick={downloadFullSchedule}
-            className="
-              inline-flex min-h-12 w-24 shrink-0 items-center justify-center rounded-full
-              border border-white1/20 bg-sky4
-              px-4 py-3 text-center font-spartan text-xs font-bold uppercase
-              leading-[1.1] tracking-wide text-white1
-              shadow-[0_5px_16px_rgba(14,40,47,0.2)]
-              transition-[transform,background-color,box-shadow] duration-150
-              hover:-translate-y-0.5 hover:bg-red1 hover:shadow-lg
-              active:translate-y-0 active:scale-[0.98]
-              focus:outline-none focus-visible:ring-2 focus-visible:ring-white1/70
-              sm:min-h-0 sm:w-auto sm:whitespace-nowrap sm:px-5 sm:py-3 sm:text-sm
-            "
-            aria-label="Add the full BigRed Hacks schedule to your calendar"
-          >
-            <span className="translate-y-0.5 sm:translate-y-0">
-              Add to calendar
-            </span>
-          </button>
-        </div>
       </div>
 
       {/* On phones, tablets, and compact laptops, each day becomes its own
@@ -354,8 +254,7 @@ const Schedule: React.FC<SectionProps> = ({ className }) => {
                   />
                 ))}
 
-                {/* Event blocks are informational; the section-level action
-                    above exports the complete schedule in one calendar file. */}
+                {/* Event blocks are informational while the schedule remains tentative. */}
                 {laid.map(({ b, topPx, heightPx }, i) => (
                   <div
                     key={i}
