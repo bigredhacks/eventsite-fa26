@@ -4,7 +4,6 @@ import afterQueryLogo from "@/assets/sponsors/afterquery.svg";
 import sandiaLogo from "@/assets/sponsors/sandia.png";
 import cursorLogo from "@/assets/sponsors/cursor.svg";
 import capitalOneLogo from "@/assets/sponsors/capital-one.svg";
-import teloraLogo from "@/assets/sponsors/telora.svg";
 import mtbLogo from "@/assets/sponsors/mtb.svg";
 import asmlLogo from "@/assets/asml_logo.png";
 import awakeLogo from "@/assets/awake_chocolate_logo.png";
@@ -118,14 +117,5 @@ export const SPONSORS: SponsorProfile[] = [
     logoTone: "light",
     logoWidth: 202,
     logoHeight: 58,
-  },
-  {
-    name: "Telora",
-    href: "https://telora.com/",
-    logo: teloraLogo,
-    contribution: null,
-    logoTone: "light",
-    logoWidth: 74,
-    logoHeight: 74,
   },
 ];
