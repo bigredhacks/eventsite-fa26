@@ -37,11 +37,12 @@ const DAYS: Day[] = [
   {
     date: "10/2",
     blocks: [
-      { label: "Check-In",         time: "16:30",       startHour: 7.5,  durationHours: 1.5, shade: "light" },
-      { label: "Opening Ceremony", time: "18:00",       startHour: 9,    durationHours: 0.5, shade: "medium" },
-      { label: "Dinner",           time: "18:30",       startHour: 9.5,  durationHours: 0.5, shade: "light" },
-      { label: "Team Matching",    time: "19:00",       startHour: 10,   durationHours: 0.5, shade: "medium" },
-      { label: "Workshops",        time: "19:30-22:30", startHour: 10.5, durationHours: 3,   shade: "light" },
+      { label: "Check-In",         time: "18:00",       startHour: 9,  durationHours: 1, shade: "medium"},
+      { label: "Opening Ceremony", time: "19:00",       startHour: 10,    durationHours: 1, shade: "light"},
+      { label: "Team Matching",    time: "20:00",       startHour: 11,   durationHours: 0.5, shade: "medium", side: "right"},
+      { label: "Dinner",           time: "20:00",       startHour: 11,  durationHours: 0.5, shade: "medium", side: "left"},
+      { label: "Cursor Workshop",        time: "21:30-22:20", startHour: 12.5, durationHours: 1,   shade: "light"},
+      { label: "Team Registration Due", time: "23:00", startHour: 14, durationHours: 0.5, shade: "dark", marker: true}
     ],
   },
   {
@@ -49,17 +50,18 @@ const DAYS: Day[] = [
     blocks: [
       { label: "Breakfast",   time: "9:00",        startHour: 0,    durationHours: 0.5, shade: "medium", marker: true },
       // Workshops + Career Fair overlap; render them side-by-side.
-      { label: "Workshops",   time: "11:30-17:00", startHour: 2.5,  durationHours: 5.5, shade: "light",  side: "left" },
+      { label: "Workshops",   time: "11:00-17:30", startHour: 2,  durationHours: 6.5, shade: "light",  side: "left" },
       { label: "Career Fair", time: "12:00-14:00", startHour: 3,    durationHours: 2,   shade: "medium", side: "right" },
-      { label: "Dinner",      time: "18:30",       startHour: 9.5,  durationHours: 0.5, shade: "light" },
+      { label: "Dinner",      time: "18:00",       startHour: 9,  durationHours: 0.5, shade: "light" },
     ],
   },
   {
     date: "10/4",
     blocks: [
       { label: "Projects Due",            time: "8:30",       startHour: 0,    durationHours: 0.5, shade: "dark",  marker: true },
-      { label: "Judging",                 time: "9:15-13:00", startHour: 0.25, durationHours: 3.75, shade: "medium" },
-      { label: "Awards + Closing Ceremony", time: "13:00",    startHour: 4,    durationHours: 1,   shade: "light" },
+      { label: "Judging",                 time: "9:00-12:00", startHour: 0, durationHours: 3, shade: "medium" },
+      { label: "Finalist Demos",           time: "12:00-12:30", startHour: 3, durationHours: 0.5, shade: "light" },
+      { label: "Awards + Closing Ceremony", time: "13:00-14:30",    startHour: 4,    durationHours: 1.5,   shade: "medium" },
     ],
   },
 ];
