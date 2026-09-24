@@ -33,12 +33,12 @@ export default function ApplicationCountdown() {
       role={isClosed ? "status" : "timer"}
       aria-live="off"
       aria-label={isClosed
-        ? "No longer taking applications"
+        ? "Fill in an application to join the waitlist"
         : `Application deadline: September 9, 2026 at 11:59 PM Eastern. ${countdown} remaining.`}
       title="Application deadline: September 9, 2026 at 11:59 PM Eastern"
     >
       {isClosed ? (
-        <span className="nav-countdown__label">No longer taking applications</span>
+        <span className="nav-countdown__label">Fill in an application to join the waitlist</span>
       ) : (
         <>
           <span className="nav-countdown__label">Applications due in</span>
