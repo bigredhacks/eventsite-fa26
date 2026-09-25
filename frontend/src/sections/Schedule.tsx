@@ -39,9 +39,9 @@ const DAYS: Day[] = [
     blocks: [
       { label: "Check-In",         time: "18:00",       startHour: 9,  durationHours: 1, shade: "medium"},
       { label: "Opening Ceremony", time: "19:00",       startHour: 10,    durationHours: 1, shade: "light"},
-      { label: "Team Matching",    time: "20:00",       startHour: 11,   durationHours: 0.5, shade: "medium", side: "right"},
-      { label: "Dinner",           time: "20:00",       startHour: 11,  durationHours: 0.5, shade: "medium", side: "left"},
-      { label: "Cursor Workshop",        time: "21:30-22:20", startHour: 12.5, durationHours: 1,   shade: "light"},
+      { label: "Dinner + Team Matching",           time: "20:00",       startHour: 11,  durationHours: 0.5, shade: "medium"},
+      { label: "Figma Workshop",        time: "20:30-21:20", startHour: 11.5, durationHours: 1,   shade: "light"},
+      { label: "General Workshops",        time: "21:30-22:20", startHour: 12.5, durationHours: 1,   shade: "medium"},
       { label: "Team Registration Due", time: "23:00", startHour: 14, durationHours: 0.5, shade: "dark", marker: true}
     ],
   },
@@ -66,16 +66,17 @@ const DAYS: Day[] = [
   },
 ];
 
-const ROW_HEIGHT_PX = 60;
+const ROW_HEIGHT_PX = 72;
 // Minimum vertical space for normal event blocks (regardless of duration)
 // so titles + times have breathing room. The grid layout intentionally
 // loses minute-accuracy in favor of readability.
-const MIN_BLOCK_HEIGHT_PX = 64;
+const MIN_BLOCK_HEIGHT_PX = 45;
 // Minimum height for marker events (single-moment markers like
 // "Projects Due 9:00"). Smaller than MIN_BLOCK_HEIGHT_PX so a 9:00
 // marker doesn't visually claim the entire 9–10AM row and confuse
 // readers about when the next event actually starts.
 const MIN_MARKER_HEIGHT_PX = 36;
+const BLOCK_INSET_PX = 4; 
 
 const shadeBg = (s: Block["shade"]) =>
   s === "dark" ? "bg-green7" : s === "medium" ? "bg-green3" : "bg-green2";
@@ -226,20 +227,21 @@ const Schedule: React.FC<SectionProps> = ({ className }) => {
               const minH = b.marker
                 ? MIN_MARKER_HEIGHT_PX
                 : MIN_BLOCK_HEIGHT_PX;
-              const heightPx = Math.max(b.durationHours * ROW_HEIGHT_PX, minH);
+              const slotHeightPx = Math.max(b.durationHours * ROW_HEIGHT_PX, minH);
+              const heightPx = Math.max(slotHeightPx - BLOCK_INSET_PX, minH - BLOCK_INSET_PX);
               // Markers DO push the next event down — by their own
               // (smaller) marker height — so a 9:00 marker chip doesn't
               // visually collide with a 9:15 long event. They just don't
               // claim a full hour of vertical space the way a normal
               // event would.
-              lastBottomBySide[sideKey] = topPx + heightPx;
+              lastBottomBySide[sideKey] = topPx + slotHeightPx;
               return { b, topPx, heightPx };
             });
             // Column needs to grow to fit the last block's bottom if our
             // min-height pushes anything past the natural 15-hour grid.
             const columnHeight = Math.max(
               HOURS.length * ROW_HEIGHT_PX,
-              ...laid.map((l) => l.topPx + l.heightPx),
+              ...laid.map((l) => l.topPx + l.heightPx + BLOCK_INSET_PX),
             );
             return (
               <div
