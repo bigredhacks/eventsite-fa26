@@ -34,20 +34,20 @@ interface SponsorVesselProps {
 const SAIL_LOGO_CENTER = { x: 210, y: 116 };
 
 const SponsorVessel: React.FC<SponsorVesselProps> = ({ sponsor }) => {
-  const tier = getSponsorTier(sponsor.contribution);
+  const tier = getSponsorTier(sponsor.contribution, sponsor.tier);
   const colors = TIER_COLORS[tier];
   const isDarkSail = sponsor.logoTone === "light";
   const logoWidth = sponsor.logoWidth ?? 198;
   const logoHeight = sponsor.logoHeight ?? 58;
-  const logoX = SAIL_LOGO_CENTER.x - logoWidth / 2;
-  const logoY = SAIL_LOGO_CENTER.y - logoHeight / 2;
+  const logoX = SAIL_LOGO_CENTER.x - logoWidth / 2 + (sponsor.logoOffsetX ?? 0);
+  const logoY = SAIL_LOGO_CENTER.y - logoHeight / 2 + (sponsor.logoOffsetY ?? 0);
 
   return (
     <motion.a
       href={sponsor.href}
       target="_blank"
       rel="noopener noreferrer"
-      aria-label={`Visit ${sponsor.name}`}
+      aria-label={sponsor.href ? `Visit ${sponsor.name}` : sponsor.name}
       title={sponsor.name}
       data-tier={tier}
       className="sponsor-vessel group block shrink-0 rounded-[38%] focus:outline-none focus-visible:ring-4 focus-visible:ring-yellow1/80 focus-visible:ring-offset-4 focus-visible:ring-offset-sky3"
@@ -55,7 +55,9 @@ const SponsorVessel: React.FC<SponsorVesselProps> = ({ sponsor }) => {
       transition={{ duration: 0.18, ease: "easeOut" }}
     >
       <svg
-        viewBox="0 0 380 260"
+        // Fit the mast's round cap (y=30) through the waterline (y=247).
+        // Keeping the same width preserves every boat and logo's scale.
+        viewBox="0 30 380 217"
         role="img"
         aria-hidden="true"
         className="block h-auto w-full overflow-visible drop-shadow-[0_12px_12px_rgba(3,80,109,0.22)] transition-[filter] duration-300 group-hover:drop-shadow-[0_18px_15px_rgba(3,80,109,0.3)]"

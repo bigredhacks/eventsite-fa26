@@ -470,6 +470,17 @@ button {
     radial-gradient(ellipse at 80% 58%, rgb(255 255 255 / 0.08), transparent 31%);
 }
 
+.sponsor-fleet {
+  --sponsor-row-gap: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sponsor-row-gap);
+}
+
+.sponsor-fleet-row {
+  row-gap: var(--sponsor-row-gap);
+}
+
 .sponsor-vessel {
   transform-origin: 50% 82%;
   -webkit-tap-highlight-color: transparent;
@@ -498,6 +509,35 @@ button {
 
   .sponsor-vessel[data-tier="supporter"] {
     width: clamp(170px, 14vw, 210px);
+  }
+}
+
+/* Cap the medium fleet at three boats per row and center any partial row. */
+.sponsor-fleet-row[data-tier="partner"] {
+  width: 100%;
+  max-width: 858px;
+  margin-inline: auto;
+  column-gap: 24px;
+}
+
+.sponsor-fleet-row[data-tier="partner"] > [role="listitem"] {
+  flex: 0 0 calc((100% - 48px) / 3);
+}
+
+.sponsor-fleet-row[data-tier="partner"] .sponsor-vessel {
+  width: 100%;
+}
+
+/* Give each medium sponsor a readable, centered boat on narrow screens. */
+@media (max-width: 639px) {
+  .sponsor-fleet-row[data-tier="partner"] > [role="listitem"] {
+    flex-basis: 100%;
+    display: flex;
+    justify-content: center;
+  }
+
+  .sponsor-fleet-row[data-tier="partner"] .sponsor-vessel {
+    width: min(60vw, 250px);
   }
 }
 
