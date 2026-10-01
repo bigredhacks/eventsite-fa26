@@ -1,5 +1,6 @@
-import { useRef } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
+import { FaMapMarkerAlt } from "react-icons/fa";
 import { SectionProps } from "./SectionProps";
 import boatThumb from "@/assets/fa26_thumb_boat.png";
 
@@ -21,6 +22,8 @@ type Block = {
   // don't push the next event downward, so a 9:00 marker won't shift a
   // 9:15 long event into the 10AM row.
   marker?: boolean;
+  // Where the event happens. Omit for online-only items (e.g. deadlines).
+  location?: string;
 };
 
 type Day = {
@@ -37,31 +40,38 @@ const DAYS: Day[] = [
   {
     date: "10/2",
     blocks: [
-      { label: "Check-In",         time: "18:00",       startHour: 9,  durationHours: 1, shade: "medium"},
-      { label: "Opening Ceremony", time: "19:00",       startHour: 10,    durationHours: 1, shade: "light"},
-      { label: "Dinner + Team Matching",           time: "20:00",       startHour: 11,  durationHours: 0.5, shade: "medium"},
-      { label: "Figma Workshop",        time: "20:30-21:20", startHour: 11.5, durationHours: 1,   shade: "light"},
-      { label: "General Workshops",        time: "21:30-22:20", startHour: 12.5, durationHours: 1,   shade: "medium"},
-      { label: "Team Registration Due", time: "23:00", startHour: 14, durationHours: 0.5, shade: "dark", marker: true}
+      { label: "Check-In",         time: "18:00",       startHour: 9,  durationHours: 1, shade: "medium", location: "Klarman Atrium" },
+      { label: "Opening Ceremony", time: "19:00",       startHour: 10,    durationHours: 0.75, shade: "light", location: "Goldwin Smith GSH132" },
+      { label: "Team Matching",    time: "19:45",       startHour: 10.75,   durationHours: 0.25, shade: "medium", side: "right", location: "Klarman Atrium" },
+      { label: "Dinner",           time: "20:00",       startHour: 11,  durationHours: 0.5, shade: "medium", side: "left", location: "Klarman Atrium" },
+      { label: "Figma Workshop",   time: "20:30-21:20", startHour: 11.5, durationHours: 50 / 60, shade: "light", location: "Goldwin Smith GSH132" },
+      { label: "SpaceX Workshop",  time: "21:30-22:20", startHour: 12.5, durationHours: 50 / 60, shade: "light", location: "Goldwin Smith GSH132" },
+      { label: "Team Registration Due", time: "23:59", startHour: 14, durationHours: 0.5, shade: "dark", marker: true}
     ],
   },
   {
     date: "10/3",
     blocks: [
-      { label: "Breakfast",   time: "9:00",        startHour: 0,    durationHours: 0.5, shade: "medium", marker: true },
+      { label: "Breakfast",   time: "9:00",        startHour: 0,    durationHours: 0.5, shade: "medium", marker: true, location: "PSB Main Floor/Clark Atrium" },
+      { label: "Raffle Draw!", time: "10:30", startHour: 1.5, durationHours: 0.5, shade: "dark", marker: true, location: "PSB Main Floor/Clark Atrium" },
       // Workshops + Career Fair overlap; render them side-by-side.
-      { label: "Workshops",   time: "11:00-17:30", startHour: 2,  durationHours: 6.5, shade: "light",  side: "left" },
-      { label: "Career Fair", time: "12:00-14:00", startHour: 3,    durationHours: 2,   shade: "medium", side: "right" },
-      { label: "Dinner",      time: "18:00",       startHour: 9,  durationHours: 0.5, shade: "light" },
+      { label: "Workshops",   time: "11:30-17:30", startHour: 2.5,  durationHours: 6, shade: "light",  side: "left", location: "PSB 120" },
+      { label: "Career Fair + Lunch", time: "12:00-14:00", startHour: 3,    durationHours: 2,   shade: "medium", side: "right", location: "PSB Main Floor/Clark Atrium" },
+      { label: "Dinner",      time: "18:00",       startHour: 9,  durationHours: 0.5, shade: "light", location: "PSB Main Floor/Clark Atrium" },
+      { label: "Ice Cream Drop", time: "20:00", startHour: 11, durationHours: 0.5, shade: "medium", marker: true, location: "PSB Main Floor/Clark Atrium" },
+      { label: "Cup Stacking Competition", time: "21:30", startHour: 12.5, durationHours: 0.5, shade: "medium", marker: true, location: "PSB Main Floor/Clark Atrium" },
+      { label: "Spicy Ramen Competition", time: "23:30", startHour: 14.5, durationHours: 0.5, shade: "medium", marker: true, location: "PSB Main Floor/Clark Atrium" },
     ],
   },
   {
     date: "10/4",
     blocks: [
       { label: "Projects Due",            time: "8:30",       startHour: 0,    durationHours: 0.5, shade: "dark",  marker: true },
-      { label: "Judging",                 time: "9:00-12:00", startHour: 0, durationHours: 3, shade: "medium" },
-      { label: "Finalist Demos",           time: "12:00-12:30", startHour: 3, durationHours: 0.5, shade: "light" },
-      { label: "Awards + Closing Ceremony", time: "13:00-14:30",    startHour: 4,    durationHours: 1.5,   shade: "medium" },
+      { label: "Judging",                 time: "9:00-10:30", startHour: 0, durationHours: 1.5, shade: "medium", location: "PSB Main Floor/Clark Atrium" },
+      { label: "Lunch", time: "10:30", startHour: 1.5, durationHours: 0.5, shade: "light", marker: true, location: "PSB Main Floor/Clark Atrium" },
+      { label: "Finalist Demos",           time: "11:30-12:30", startHour: 2.5, durationHours: 1, shade: "light", location: "Baker 200" },
+      { label: "Awards + Closing Ceremony", time: "13:00-14:00",    startHour: 4,    durationHours: 1,   shade: "medium", location: "Baker 200" },
+      { label: "Hackathon Ends!", time: "14:00", startHour: 5, durationHours: 0.5, shade: "dark", marker: true },
     ],
   },
 ];
@@ -77,6 +87,14 @@ const MIN_BLOCK_HEIGHT_PX = 45;
 // readers about when the next event actually starts.
 const MIN_MARKER_HEIGHT_PX = 36;
 const BLOCK_INSET_PX = 4; 
+
+const LocationLine: React.FC<{ location?: string }> = ({ location }) =>
+  location ? (
+    <p className="flex items-start gap-1 font-bevietnam text-xs text-white1/85 leading-tight">
+      <FaMapMarkerAlt aria-hidden className="shrink-0 text-[10px] mt-0.5" />
+      <span>{location}</span>
+    </p>
+  ) : null;
 
 const shadeBg = (s: Block["shade"]) =>
   s === "dark" ? "bg-green7" : s === "medium" ? "bg-green3" : "bg-green2";
@@ -105,6 +123,33 @@ const Schedule: React.FC<SectionProps> = ({ className }) => {
   // Right boat sails DOWN (top moves from top toward bottom).
   const leftBoatY = useTransform(scrollYProgress, [0, 1], ["80%", "5%"]);
   const rightBoatY = useTransform(scrollYProgress, [0, 1], ["5%", "80%"]);
+
+  // Rendered height (content + padding) of each desktop block, keyed by
+  // `${date}-${index}`. Titles and locations wrap differently depending on
+  // column width, so blocks grow to fit their content instead of relying on
+  // fixed minimums that would clip text at narrower widths.
+  const blockRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const [contentHeights, setContentHeights] = useState<Record<string, number>>({});
+  useLayoutEffect(() => {
+    const measure = () => {
+      const next: Record<string, number> = {};
+      for (const [key, el] of Object.entries(blockRefs.current)) {
+        const block = el?.parentElement;
+        if (!el || !block) continue;
+        const style = getComputedStyle(block);
+        next[key] =
+          el.offsetHeight + parseFloat(style.paddingTop) + parseFloat(style.paddingBottom);
+      }
+      setContentHeights((prev) =>
+        Object.keys(next).every((k) => prev[k] === next[k]) ? prev : next,
+      );
+    };
+    measure();
+    // Content height only depends on block width, so this can't loop.
+    const observer = new ResizeObserver(measure);
+    Object.values(blockRefs.current).forEach((el) => el && observer.observe(el));
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <section
@@ -168,9 +213,12 @@ const Schedule: React.FC<SectionProps> = ({ className }) => {
                     rounded-2xl px-4 py-3 text-left text-white1
                   `}
                 >
-                  <span className="min-w-0 font-bevietnam text-base font-bold leading-tight sm:text-lg">
-                    {block.label}
-                  </span>
+                  <div className="flex min-w-0 flex-col gap-1">
+                    <span className="font-bevietnam text-base font-bold leading-tight sm:text-lg">
+                      {block.label}
+                    </span>
+                    <LocationLine location={block.location} />
+                  </div>
                   <span className="shrink-0 rounded-full bg-green7/35 px-3 py-1.5 font-bevietnam text-xs font-bold leading-none sm:text-sm">
                     {block.time}
                   </span>
@@ -211,24 +259,35 @@ const Schedule: React.FC<SectionProps> = ({ className }) => {
             // duration-accurate top (startHour * ROW_HEIGHT_PX) but clamp
             // it forward so each block sits below the previous block's
             // bottom — this preserves min-block-height without letting
-            // short back-to-back events overlap. Side-by-side blocks
-            // (left/right) are tracked separately so they don't push
-            // each other down.
+            // short back-to-back events overlap. Left and right blocks
+            // don't push each other down (so they can sit side-by-side),
+            // but both clear any full-width block above them, and a
+            // full-width block clears everything above it.
             type Laid = { b: Block; topPx: number; heightPx: number };
             const lastBottomBySide: Record<string, number> = {};
-            const laid: Laid[] = day.blocks.map((b) => {
+            const laid: Laid[] = day.blocks.map((b, i) => {
               const sideKey = b.side ?? "full";
               const naturalTop = b.startHour * ROW_HEIGHT_PX;
-              const minTop = lastBottomBySide[sideKey] ?? 0;
+              const minTop = sideKey !== "full"
+                ? Math.max(lastBottomBySide[sideKey] ?? 0, lastBottomBySide.full ?? 0)
+                : Math.max(0, ...Object.values(lastBottomBySide));
               const topPx = Math.max(naturalTop, minTop);
               // Markers use a smaller min-height so a single-moment event
               // doesn't claim the full hour row; non-markers expand to the
-              // standard MIN_BLOCK_HEIGHT_PX for readability.
+              // standard MIN_BLOCK_HEIGHT_PX for readability. Either way a
+              // block grows to fit its measured content (wrapped titles,
+              // location lines) so nothing is clipped.
               const minH = b.marker
                 ? MIN_MARKER_HEIGHT_PX
                 : MIN_BLOCK_HEIGHT_PX;
-              const slotHeightPx = Math.max(b.durationHours * ROW_HEIGHT_PX, minH);
-              const heightPx = Math.max(slotHeightPx - BLOCK_INSET_PX, minH - BLOCK_INSET_PX);
+              // The slot reserves room for the block plus BLOCK_INSET_PX of
+              // breathing space below it, so it must fit the measured content.
+              const slotHeightPx = Math.max(
+                b.durationHours * ROW_HEIGHT_PX,
+                minH,
+                (contentHeights[`${day.date}-${i}`] ?? 0) + BLOCK_INSET_PX,
+              );
+              const heightPx = slotHeightPx - BLOCK_INSET_PX;
               // Markers DO push the next event down — by their own
               // (smaller) marker height — so a 9:00 marker chip doesn't
               // visually collide with a 9:15 long event. They just don't
@@ -264,7 +323,7 @@ const Schedule: React.FC<SectionProps> = ({ className }) => {
                     key={i}
                     className={`
                       absolute ${blockSideStyle(b.side)} ${shadeBg(b.shade)}
-                      rounded-lg ${b.marker ? "px-3 py-1.5" : "p-2 md:p-3"}
+                      rounded-lg ${b.marker ? "px-3 py-1.5 flex flex-col justify-center" : "p-2 md:p-3"}
                       text-left overflow-hidden
                     `}
                     style={{
@@ -278,34 +337,45 @@ const Schedule: React.FC<SectionProps> = ({ className }) => {
                         time vertically so the time string can't overflow
                         the narrow column. Full-width blocks keep the
                         title-left / time-right inline layout. */}
-                    {b.marker ? (
-                      <div className="flex items-center justify-between gap-2 h-full">
-                        <p className="font-bevietnam font-bold text-white1 text-sm md:text-base leading-none">
-                          {b.label}
-                        </p>
-                        <p className="font-bevietnam font-bold text-white1 text-xs md:text-sm whitespace-nowrap leading-none">
-                          {b.time}
-                        </p>
-                      </div>
-                    ) : b.side === "left" || b.side === "right" ? (
-                      <div className="flex flex-col">
-                        <p className="font-bevietnam font-bold text-white1 text-sm md:text-base leading-tight">
-                          {b.label}
-                        </p>
-                        <p className="font-bevietnam font-bold text-white1 text-xs md:text-sm leading-tight mt-0.5">
-                          {b.time}
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="flex items-start justify-between gap-2">
-                        <p className="font-bevietnam font-bold text-white1 text-sm md:text-base leading-tight">
-                          {b.label}
-                        </p>
-                        <p className="font-bevietnam font-bold text-white1 text-xs md:text-sm whitespace-nowrap">
-                          {b.time}
-                        </p>
-                      </div>
-                    )}
+                    <div ref={(el) => { blockRefs.current[`${day.date}-${i}`] = el; }}>
+                      {b.marker ? (
+                        <div className="flex flex-col gap-1">
+                          <div className="flex items-center justify-between gap-2">
+                            <p className="font-bevietnam font-bold text-white1 text-sm md:text-base leading-none">
+                              {b.label}
+                            </p>
+                            <p className="font-bevietnam font-bold text-white1 text-xs md:text-sm whitespace-nowrap leading-none">
+                              {b.time}
+                            </p>
+                          </div>
+                          <LocationLine location={b.location} />
+                        </div>
+                      ) : b.side === "left" || b.side === "right" ? (
+                        <div className="flex flex-col">
+                          <p className="font-bevietnam font-bold text-white1 text-sm md:text-base leading-tight">
+                            {b.label}
+                          </p>
+                          <p className="font-bevietnam font-bold text-white1 text-xs md:text-sm leading-tight mt-0.5">
+                            {b.time}
+                          </p>
+                          <div className="mt-0.5">
+                            <LocationLine location={b.location} />
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col gap-0.5">
+                          <div className="flex items-start justify-between gap-2">
+                            <p className="font-bevietnam font-bold text-white1 text-sm md:text-base leading-tight">
+                              {b.label}
+                            </p>
+                            <p className="font-bevietnam font-bold text-white1 text-xs md:text-sm whitespace-nowrap">
+                              {b.time}
+                            </p>
+                          </div>
+                          <LocationLine location={b.location} />
+                        </div>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
