@@ -58,7 +58,6 @@ const DAYS: Day[] = [
       { label: "Workshops",   time: "11:30-17:30", startHour: 2.5,  durationHours: 6, shade: "light",  side: "left", location: "PSB 120" },
       { label: "Career Fair + Lunch", time: "12:00-14:00", startHour: 3,    durationHours: 2,   shade: "medium", side: "right", location: "PSB Main Floor/Clark Atrium" },
       { label: "Dinner",      time: "18:00",       startHour: 9,  durationHours: 0.5, shade: "light", location: "PSB Main Floor/Clark Atrium" },
-      { label: "Ice Cream Drop", time: "20:00", startHour: 11, durationHours: 0.5, shade: "medium", marker: true, location: "PSB Main Floor/Clark Atrium" },
       { label: "Cup Stacking Competition", time: "21:30", startHour: 12.5, durationHours: 0.5, shade: "medium", marker: true, location: "PSB Main Floor/Clark Atrium" },
       { label: "Spicy Ramen Competition", time: "23:30", startHour: 14.5, durationHours: 0.5, shade: "medium", marker: true, location: "PSB Main Floor/Clark Atrium" },
     ],
